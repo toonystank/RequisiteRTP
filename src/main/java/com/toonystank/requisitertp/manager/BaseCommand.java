@@ -1,8 +1,8 @@
-package com.toonystank.templateplugin.manager;
+package com.toonystank.requisitertp.manager;
 
-import com.toonystank.templateplugin.TemplatePlugin;
-import com.toonystank.templateplugin.utils.Handlers;
-import com.toonystank.templateplugin.utils.MessageUtils;
+import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.utils.Handlers;
+import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -17,22 +17,22 @@ import java.util.*;
 @SuppressWarnings("unused")
 public abstract class BaseCommand implements CommandExecutor, TabCompleter {
 
-    private final TemplatePlugin plugin;
+    private final RequisiteRTP plugin;
     private final Command commandData;
     private final Map<String, SubCommand> subCommands = new HashMap<>();
 
-    protected BaseCommand(TemplatePlugin plugin, String name, boolean playerOnlyCommand, boolean requireArgument, String description, String usage, String permission, List<String> aliases) {
+    protected BaseCommand(RequisiteRTP plugin, String name, boolean playerOnlyCommand, boolean requireArgument, String description, String usage, String permission, List<String> aliases) {
         this.plugin = plugin;
         this.commandData = new Command(name, playerOnlyCommand, requireArgument, description, usage, permission, aliases);
         registerCommand(commandData);
     }
-    protected BaseCommand(TemplatePlugin plugin, String name, boolean playerOnlyCommand, boolean requireArgument, String description, String usage, String permission, String... aliases) {
+    protected BaseCommand(RequisiteRTP plugin, String name, boolean playerOnlyCommand, boolean requireArgument, String description, String usage, String permission, String... aliases) {
         this.plugin = plugin;
         this.commandData = new Command(name, playerOnlyCommand, requireArgument, description, usage, permission, Arrays.asList(aliases));
         registerCommand(commandData);
     }
 
-    protected BaseCommand(TemplatePlugin plugin, Command commandData) {
+    protected BaseCommand(RequisiteRTP plugin, Command commandData) {
         this.plugin = plugin;
         this.commandData = commandData;
         registerCommand(commandData);

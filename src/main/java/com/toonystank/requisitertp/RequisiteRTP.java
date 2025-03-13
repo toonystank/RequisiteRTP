@@ -1,7 +1,7 @@
-package com.toonystank.templateplugin;
+package com.toonystank.requisitertp;
 
-import com.toonystank.templateplugin.utils.MainConfig;
-import com.toonystank.templateplugin.utils.MessageUtils;
+import com.toonystank.requisitertp.utils.MainConfig;
+import com.toonystank.requisitertp.utils.MessageUtils;
 
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -10,13 +10,13 @@ import java.io.IOException;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
-public final class TemplatePlugin extends JavaPlugin {
+public final class RequisiteRTP extends JavaPlugin {
 
     // Change this for all the console outputs
-    private final String pluginName = "TemplatePlugin";
+    private final String pluginName = "RequisiteRTP";
 
     @Getter
-    private static TemplatePlugin instance;
+    private static RequisiteRTP instance;
 
     private BukkitAudiences adventure;
     private MainConfig mainConfig;
@@ -30,14 +30,13 @@ public final class TemplatePlugin extends JavaPlugin {
         try {
             this.mainConfig = new MainConfig();
         } catch (IOException e) {
-            MessageUtils.error("An error happend when loading config.yml " + e.getMessage());
+            MessageUtils.error("An error happened when loading config.yml " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     public void onDisable() {
-        adventure.close();
         // Plugin shutdown logic
     }
 

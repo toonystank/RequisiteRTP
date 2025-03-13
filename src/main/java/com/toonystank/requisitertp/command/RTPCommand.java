@@ -1,7 +1,7 @@
-package com.toonystank.templateplugin.command;
+package com.toonystank.requisitertp.command;
 
-import com.toonystank.templateplugin.TemplatePlugin;
-import com.toonystank.templateplugin.manager.BaseCommand;
+import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.manager.BaseCommand;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class RTPCommand extends BaseCommand{
 
-    protected RTPCommand(TemplatePlugin plugin) {
+    protected RTPCommand(RequisiteRTP plugin) {
         super(plugin, "rtp"
                 ,false
                 , false
@@ -32,7 +32,7 @@ public class RTPCommand extends BaseCommand{
     public void execute(ConsoleCommandSender sender, String[] args) {
         if (!(args.length > 0)) return;
 
-        Player player = TemplatePlugin.getInstance().getServer().getPlayer(args[0]);
+        Player player = RequisiteRTP.getInstance().getServer().getPlayer(args[0]);
         if (player == null) return;
 
     
@@ -41,7 +41,7 @@ public class RTPCommand extends BaseCommand{
     @Override
     public void execute(Player player, String[] args) {
         if (args.length > 0) {
-            player = TemplatePlugin.getInstance().getServer().getPlayer(args[0]);
+            player = RequisiteRTP.getInstance().getServer().getPlayer(args[0]);
         }
         if (player == null) return;
         

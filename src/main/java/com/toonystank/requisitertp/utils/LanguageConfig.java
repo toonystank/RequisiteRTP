@@ -1,4 +1,4 @@
-package com.toonystank.templateplugin.utils;
+package com.toonystank.requisitertp.utils;
 
 import lombok.Getter;
 

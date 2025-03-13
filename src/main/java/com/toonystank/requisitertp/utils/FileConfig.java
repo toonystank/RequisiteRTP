@@ -1,6 +1,6 @@
-package com.toonystank.templateplugin.utils;
+package com.toonystank.requisitertp.utils;
 
-import com.toonystank.templateplugin.TemplatePlugin;
+import com.toonystank.requisitertp.RequisiteRTP;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -31,7 +31,7 @@ public class FileConfig {
     public String fileName;
     private FileConfiguration config;
     @Nullable
-    protected TemplatePlugin plugin;
+    protected RequisiteRTP plugin;
     private final boolean isInFolder;
     private String configVersion;
     private boolean consoleLogger = true;
@@ -46,7 +46,7 @@ public class FileConfig {
      * @param copy     boolean either copy the file from the plugin or not
      */
     public FileConfig(String fileName, boolean force, boolean copy) throws IOException {
-        this.plugin = TemplatePlugin.getInstance();
+        this.plugin = RequisiteRTP.getInstance();
         if (plugin != null) this.logger = plugin.getLogger();
         else this.logger = Logger.getGlobal();
         this.fileName = fileName;
@@ -81,7 +81,7 @@ public class FileConfig {
      * @param copy     boolean either copy the file from the plugin or not
      */
     public FileConfig(String fileName, @Nullable String path, boolean force, boolean copy) throws IOException {
-        this.plugin = TemplatePlugin.getInstance();
+        this.plugin = RequisiteRTP.getInstance();
         if (plugin != null) this.logger = plugin.getLogger();
         else this.logger = Logger.getGlobal();
         this.corePath = path;
@@ -96,7 +96,7 @@ public class FileConfig {
      * @param path     String path you want to initialize the config in
      */
     public FileConfig(String fileName, @Nullable String path) {
-        this.plugin = TemplatePlugin.getInstance();
+        this.plugin = RequisiteRTP.getInstance();
         this.logger = plugin.getLogger();
         this.corePath = path;
         this.fileName = fileName;

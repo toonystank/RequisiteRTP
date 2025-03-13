@@ -1,20 +1,20 @@
-package com.toonystank.templateplugin.command;
+package com.toonystank.requisitertp.command;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.toonystank.templateplugin.TemplatePlugin;
+import com.toonystank.requisitertp.RequisiteRTP;
 import org.bukkit.command.CommandSender;
 
-import com.toonystank.templateplugin.manager.SubCommand;
-import com.toonystank.templateplugin.utils.Handlers;
+import com.toonystank.requisitertp.manager.SubCommand;
+import com.toonystank.requisitertp.utils.Handlers;
 
 public class ReloadCommand implements SubCommand {
 
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        TemplatePlugin.getInstance().reload();
+        RequisiteRTP.getInstance().reload();
     }
 
     @Override

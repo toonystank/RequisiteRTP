@@ -1,6 +1,6 @@
-package com.toonystank.templateplugin.utils;
+package com.toonystank.requisitertp.utils;
 
-import com.toonystank.templateplugin.TemplatePlugin;
+import com.toonystank.requisitertp.RequisiteRTP;
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -79,7 +79,7 @@ public class MessageUtils {
     }
     public static void sendMessage(CommandSender sender, String message) {
         MessageUtils.toConsole(message  + "  sending to player " + sender ,true );
-        if (TemplatePlugin.getInstance().getMainConfig().isSmallText()) {
+        if (RequisiteRTP.getInstance().getMainConfig().isSmallText()) {
             message = SmallLetterConvertor.convert(message);
         }
         Component component = new MineDown(message).toComponent();
@@ -125,22 +125,22 @@ public class MessageUtils {
     }
     public static void toConsole(String message, boolean debug) {
         if (debug) {
-            if (!TemplatePlugin.getInstance().getMainConfig().isDebug()) return;
+            if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
         }
-        message = "&a[TemplatePlugin]&r " + message;
+        message = "&a[RequisiteRTP]&r " + message;
         Component component = new MineDown(message).toComponent();
         toConsole(component, debug);
     }
     public static void toConsole(Component component, boolean debug) {
         if (debug) {
-            if (!TemplatePlugin.getInstance().getMainConfig().isDebug()) return;
+            if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
         }
         component = component.decoration(TextDecoration.ITALIC,false);
-        audience.sender(TemplatePlugin.getInstance().getServer().getConsoleSender()).sendMessage(component);
+        audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
     }
     public static void error(String message) {
-        message = message + ". Server version: " + TemplatePlugin.getInstance().getServer().getVersion() + ". Plugin version: " + TemplatePlugin.getInstance().getDescription().getVersion() + ". Please report this error to the plugin developer.";
-        message = "[" + TemplatePlugin.getInstance().getPluginName()+ "] " + message;
+        message = message + ". Server version: " + RequisiteRTP.getInstance().getServer().getVersion() + ". Plugin version: " + RequisiteRTP.getInstance().getDescription().getVersion() + ". Please report this error to the plugin developer.";
+        message = "[" + RequisiteRTP.getInstance().getPluginName()+ "] " + message;
         Component component = new MineDown(message).toComponent();
         error(component);
     }
@@ -148,34 +148,34 @@ public class MessageUtils {
         try {
             component = component.decoration(TextDecoration.ITALIC, false);
             component = component.color(TextColor.fromHexString("#CF203E"));
-            audience.sender(TemplatePlugin.getInstance().getServer().getConsoleSender()).sendMessage(component);
+            audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
         } catch (NullPointerException ignored) {
             error("an error occurred while sending a message");
         }
     }
     public static void debug(String message) {
-        if (!TemplatePlugin.getInstance().getMainConfig().isDebug()) return;
-        message = message + ". Server version: " + TemplatePlugin.getInstance().getServer().getVersion() + ". Plugin version: " + TemplatePlugin.getInstance().getDescription().getVersion() + ". To stop receiving this messages please update your config.yml";
+        if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
+        message = message + ". Server version: " + RequisiteRTP.getInstance().getServer().getVersion() + ". Plugin version: " + RequisiteRTP.getInstance().getDescription().getVersion() + ". To stop receiving this messages please update your config.yml";
         Component component = new MineDown(message).toComponent();
         debug(component);
     }
     public static void debug(Component component) {
         try {
             component = component.decoration(TextDecoration.ITALIC, false);
-            audience.sender(TemplatePlugin.getInstance().getServer().getConsoleSender()).sendMessage(component);
+            audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
         } catch (NullPointerException ignored) {
             error("an error occurred while sending a message");
         }
     }
     public static void warning(String message) {
-        message = "[" + TemplatePlugin.getInstance().getPluginName()+ "] " + message;
+        message = "[" + RequisiteRTP.getInstance().getPluginName()+ "] " + message;
         Component component = new MineDown(message).toComponent();
         warning(component);
     }
     public static void warning(Component component) {
         component = component.decoration(TextDecoration.ITALIC,false);
         component = component.color(TextColor.fromHexString("#FFC107"));
-        audience.sender(TemplatePlugin.getInstance().getServer().getConsoleSender()).sendMessage(component);
+        audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
     }
     public static String replaceGrayWithWhite(String inputString) {
         if (inputString.contains("&7")) inputString = inputString.replace("&7", "&f");

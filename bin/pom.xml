@@ -43,11 +43,11 @@
                   <relocations>
                       <relocation>
                           <pattern>de.themoep.minedown</pattern>
-                          <shadedPattern>com.toonystank.templateplugin.utils.minedown</shadedPattern>
+                          <shadedPattern>com.toonystank.requisitertp.utils.minedown</shadedPattern>
                       </relocation>
                       <relocation>
                             <pattern>net.kyori.adventure</pattern>
-                            <shadedPattern>com.toonystank.templateplugin.utils.adventure</shadedPattern>
+                            <shadedPattern>com.toonystank.requisitertp.utils.adventure</shadedPattern>
                       </relocation>
                   </relocations>
                   <filters>
