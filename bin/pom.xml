@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.toonystank</groupId>
+  <artifactId>RequisiteRTP</artifactId>
+  <version>1.0</version>
+  <packaging>jar</packaging>
+
+  <name>RequisiteRTP</name>
+
+    <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
+        <executions>
+          <execution>
+              <phase>package</phase>
+              <goals>
+              <goal>shade</goal>
+              </goals>
+              <configuration>
+                  <minimizeJar>false</minimizeJar>
+                  <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+                  <relocations>
+                      <relocation>
+                          <pattern>de.themoep.minedown</pattern>
+                          <shadedPattern>com.toonystank.templateplugin.utils.minedown</shadedPattern>
+                      </relocation>
+                      <relocation>
+                            <pattern>net.kyori.adventure</pattern>
+                            <shadedPattern>com.toonystank.templateplugin.utils.adventure</shadedPattern>
+                      </relocation>
+                  </relocations>
+                  <filters>
+                      <filter>
+                          <artifact>*:*</artifact>
+                          <excludeDefaults>false</excludeDefaults>
+                      </filter>
+                  </filters>
+              </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+  </build>
+
+  <repositories>
+      <repository>
+          <id>papermc-repo</id>
+          <url>https://repo.papermc.io/repository/maven-public/</url>
+      </repository>
+      <repository>
+          <id>sonatype</id>
+          <url>https://oss.sonatype.org/content/groups/public/</url>
+      </repository>
+      <!-- Spigot -->
+      <repository>
+          <id>spigot-repo</id>
+          <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+      </repository>
+      <!-- PaperMC -->
+      <repository>
+          <id>papermc</id>
+          <url>https://papermc.io/repo/repository/maven-public/</url>
+      </repository>
+      <!-- Vault -->
+      <repository>
+          <id>vault-repo</id>
+          <url>https://nexus.hc.to/content/repositories/pub_releases</url>
+      </repository>
+      <!-- Minedown -->
+      <repository>
+          <id>minebench-repo</id>
+          <url>https://repo.minebench.de/</url>
+      </repository>
+  </repositories>
+
+  <dependencies>
+      <!--Spigot API-->
+      <dependency>
+          <groupId>org.spigotmc</groupId>
+          <artifactId>spigot-api</artifactId>
+          <version>1.8.8-R0.1-SNAPSHOT</version>
+          <scope>provided</scope>
+      </dependency>
+      <!-- Spigot nms -->
+      <dependency>
+          <groupId>org.spigotmc</groupId>
+          <artifactId>spigot</artifactId>
+          <version>1.8.8-R0.1-SNAPSHOT</version>
+          <scope>provided</scope>
+      </dependency>
+      <!-- Vault -->
+      <dependency>
+          <groupId>net.milkbowl.vault</groupId>
+          <artifactId>VaultAPI</artifactId>
+          <version>1.7</version>
+          <scope>provided</scope>
+      </dependency>
+      <!-- Paperlib -->
+      <dependency>
+          <groupId>io.papermc</groupId>
+          <artifactId>paperlib</artifactId>
+          <version>1.0.8</version>
+          <scope>compile</scope>
+      </dependency>
+        <!-- Adventure API -->
+      <dependency>
+          <groupId>net.kyori</groupId>
+          <artifactId>adventure-api</artifactId>
+          <version>4.19.0</version>
+      </dependency>
+      <!-- Minedown -->
+      <dependency>
+          <groupId>de.themoep</groupId>
+          <artifactId>minedown-adventure</artifactId>
+          <version>1.7.3-SNAPSHOT</version>
+          <scope>compile</scope>
+          <exclusions>
+              <exclusion>
+                  <groupId>net.kyori</groupId>
+                  <artifactId>adventure-api</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>net.kyori</groupId>
+                  <artifactId>adventure-platform-bukkit</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.google.code.gson</groupId>
+                  <artifactId>gson</artifactId>
+              </exclusion>
+          </exclusions>
+      </dependency>
+      <!-- Adventure Platform Bukkit -->
+      <dependency>
+          <groupId>net.kyori</groupId>
+          <artifactId>adventure-platform-bukkit</artifactId>
+          <version>4.3.4</version>
+      </dependency>
+        <!-- Lombok -->
+      <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <version>1.18.32</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.jetbrains</groupId>
+          <artifactId>annotations</artifactId>
+          <version>26.0.1</version>
+          <scope>compile</scope>
+      </dependency>
+  </dependencies>
+</project>

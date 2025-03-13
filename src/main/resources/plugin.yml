@@ -1,0 +1,4 @@
+name: TemplatePlugin
+version: '${project.version}'
+main: com.toonystank.templateplugn.TemplatePlugin
+api-version: '1.13'
