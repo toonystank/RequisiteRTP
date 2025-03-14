@@ -22,8 +22,7 @@ public class WorldManager {
             worlds.put(world.getName(), new RequisiteWorld(world.getName(), world.getUID()));
         }
     }
-    
-    
+
     public RequisiteWorld getWorld(String worldName){
         return worlds.get(worldName);
     }

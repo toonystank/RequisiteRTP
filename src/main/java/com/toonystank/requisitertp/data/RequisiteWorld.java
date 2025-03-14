@@ -38,8 +38,6 @@ public class RequisiteWorld {
         return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
     }
 
-
-
     @Getter
     public static class ReferenceWorld {
 
