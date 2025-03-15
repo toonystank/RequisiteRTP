@@ -1,6 +1,5 @@
 package com.toonystank.requisitertp;
 
-import com.toonystank.requisitertp.data.WorldManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -10,21 +9,15 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class RTPManager {
 
-    private final WorldManager worldManager;
     private final Random random;
-    private final ExecutorService executorService;
     private final RTPQueue rtpQueue;
     private final List<RTPProtectionHook> protectionHooks;
 
-    public RTPManager(WorldManager worldManager) {
-        this.worldManager = worldManager;
+    public RTPManager() {
         this.random = new Random();
-        this.executorService = Executors.newFixedThreadPool(2);
         this.rtpQueue = new RTPQueue(this);
         this.protectionHooks = new ArrayList<>();
     }
