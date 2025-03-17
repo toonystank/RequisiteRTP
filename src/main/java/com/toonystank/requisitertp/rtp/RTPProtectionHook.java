@@ -1,4 +1,4 @@
-package com.toonystank.requisitertp;
+package com.toonystank.requisitertp.rtp;
 
 import lombok.Getter;
 import org.bukkit.Location;
