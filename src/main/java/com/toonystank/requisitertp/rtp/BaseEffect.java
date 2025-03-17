@@ -1,4 +1,4 @@
-package com.toonystank.requisitertp.teleport;
+package com.toonystank.requisitertp.rtp;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,33 +12,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public abstract class TeleportEffect {
+public abstract class BaseEffect {
 
     @Getter
     private static final List<Player> queuedTeleportingPlayers = new ArrayList<>();
 
     private final Effect effect;
 
-    public TeleportEffect(String name
+    public BaseEffect(String name
             , boolean enabled
             , List<String> description
             , List<String> commandsToRun
-            , Class<? extends TeleportEffect> effectClass) {
-        this.effect = new Effect(name, enabled, description, commandsToRun,effectClass);
-        TeleportManager.registerEffect(effect);
+            , String permissionNode
+            , Class<? extends BaseEffect> effectClass) {
+        this.effect = new Effect(name, enabled, description, commandsToRun,permissionNode,effectClass);
+    }
+    public BaseEffect(Effect effect) {
+        this.effect = effect;
     }
 
     public abstract void runEffect(Player player);
 
-    public void addQueuedTeleportingPlayer(Player player) {
+    public static void addQueuedTeleportingPlayer(Player player) {
         queuedTeleportingPlayers.add(player);
     }
-    public void removeQueuedTeleportingPlayer(Player player) {
+    public static void removeQueuedTeleportingPlayer(Player player) {
         queuedTeleportingPlayers.remove(player);
     }
-    public boolean isQueuedTeleportingPlayer(Player player) {
+    public static boolean isQueuedTeleportingPlayer(Player player) {
         return queuedTeleportingPlayers.contains(player);
     }
+
     @AllArgsConstructor @NoArgsConstructor @Setter @Getter
     public static class Effect {
 
@@ -47,7 +51,8 @@ public abstract class TeleportEffect {
         private List<String> description;
         @Nullable
         private List<String> commandsToRun;
+        private String permissionNode;
         @NotNull
-        private Class<? extends TeleportEffect> effectClass;
+        private Class<? extends BaseEffect> effectClass;
     }
 }

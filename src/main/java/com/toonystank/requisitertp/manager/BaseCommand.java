@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -48,39 +49,58 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
 
     public abstract void execute(Player player, String[] args);
 
-    private void registerCommand(Command commandData) {
-        PluginCommand command = plugin.getCommand(commandData.name());
-        if (command == null) {
-            command = createPluginCommand(commandData);
-        }
+    public void registerCommand(Command commandData) {
+        PluginCommand command = createPluginCommand(commandData);
         if (command != null) {
+            MessageUtils.toConsole("Registered command: " + commandData.getName(),true);
+            // Set executor and tab completer
             command.setExecutor(this);
             command.setTabCompleter(this);
-            if (commandData.aliases() != null && !commandData.aliases().isEmpty()) {
-                command.setAliases(commandData.aliases());
+
+            // Set aliases if provided
+            if (commandData.getAliases() != null && !commandData.getAliases().isEmpty()) {
+                command.setAliases(commandData.getAliases());
             }
-            if (commandData.description() != null && !commandData.description().isEmpty()) {
-                command.setDescription(commandData.description());
+
+            // Set description if provided
+            if (commandData.getDescription() != null && !commandData.getDescription().isEmpty()) {
+                command.setDescription(commandData.getDescription());
             }
-            if (commandData.usage() != null && !commandData.usage().isEmpty()) {
-                command.setUsage(commandData.usage());
+
+            // Set usage if provided
+            if (commandData.getUsage() != null && !commandData.getUsage().isEmpty()) {
+                command.setUsage(commandData.getUsage());
             }
-            command.setPermission(commandData.permission());
+
+            // Set permission if provided
+            command.setPermission(commandData.getPermission());
         } else {
-            MessageUtils.warning("Failed to register command: " + commandData.name());
+            System.err.println("Failed to register command: " + commandData.getName());
         }
     }
 
     private PluginCommand createPluginCommand(Command commandData) {
         try {
-            Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+            Constructor<PluginCommand> constructor = PluginCommand.class
+                    .getDeclaredConstructor(String.class, Plugin.class);
             constructor.setAccessible(true);
-            PluginCommand command = constructor.newInstance(commandData.name(), plugin);
+            PluginCommand command = constructor.newInstance(commandData.getName(), plugin);
             command.setExecutor(this);
             command.setTabCompleter(this);
-            Field commandMapField = plugin.getServer().getPluginManager().getClass().getDeclaredField("commandMap");
-            commandMapField.setAccessible(true);
-            CommandMap commandMap = (CommandMap) commandMapField.get(plugin.getServer().getPluginManager());
+            if (commandData.getDescription() != null) {
+                command.setDescription(commandData.getDescription());
+            }
+            if (commandData.getUsage() != null) {
+                command.setUsage(commandData.getUsage());
+            }
+            if (commandData.getPermission() != null) {
+                command.setPermission(commandData.getPermission());
+            }
+            if (commandData.getAliases() != null) {
+                command.setAliases(commandData.getAliases());
+            }
+            // Use reflection to access the CommandMap
+            CommandMap commandMap = getCommandMap();
             commandMap.register(plugin.getName(), command);
             return command;
         } catch (Exception e) {
@@ -89,13 +109,42 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private CommandMap getCommandMap() throws NoSuchFieldException, IllegalAccessException {
+        MessageUtils.toConsole("Getting CommandMap",true);
+        Field commandMapField;
+        try {
+            // Try to get the CommandMap from CraftServer (for newer versions)
+            commandMapField = plugin.getServer().getClass().getDeclaredField("commandMap");
+            MessageUtils.toConsole("Getting CommandMap from CraftServer",true);
+        } catch (NoSuchFieldException e) {
+            // Fallback to SimplePluginManager (for older versions)
+            commandMapField = SimplePluginManager.class.getDeclaredField("commandMap");
+            MessageUtils.toConsole("Getting CommandMap from SimplePluginManager",true);
+        }
+        commandMapField.setAccessible(true);
+
+        // Get the CommandMap instance
+        CommandMap commandMap;
+        if (commandMapField.getDeclaringClass() == SimplePluginManager.class) {
+            // For older versions (1.8.8 - 1.12)
+            commandMap = (CommandMap) commandMapField.get(plugin.getServer().getPluginManager());
+        } else {
+            // For newer versions (1.13+)
+            commandMap = (CommandMap) commandMapField.get(plugin.getServer());
+        }
+        commandMapField.setAccessible(true);
+        return commandMap;
+    }
+
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, org.bukkit.command.@NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        if (commandData.playerOnlyCommand() && !(sender instanceof Player)) {
+        MessageUtils.toConsole("Command: " + command.getName() + " Args: " + Arrays.toString(args),true);
+        if (commandData.getPlayerOnlyCommand() && !(sender instanceof Player)) {
             sender.sendMessage(plugin.getMainConfig().getLanguageConfig().getPlayerOnly());
             return true;
         }
-        if (commandData.permission() != null && !Handlers.hasPermission(sender, commandData.permission())) {
+        if (commandData.getPermission() != null && !Handlers.hasPermission(sender, commandData.getPermission())) {
             sender.sendMessage(plugin.getMainConfig().getLanguageConfig().getNoPermission());
             return true;
         }
@@ -132,6 +181,7 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
         return Collections.emptyList();
     }
 
+    @Getter
     public static class Command {
         private final String name;
         private final boolean playerOnlyCommand;
@@ -151,12 +201,6 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
             this.aliases = aliases;
         }
 
-        public String name() { return name; }
-        public boolean playerOnlyCommand() { return playerOnlyCommand; }
-        public boolean requireArguments() { return requireArguments; }
-        public String description() { return description; }
-        public String usage() { return usage; }
-        public String permission() { return permission; }
-        public List<String> aliases() { return aliases; }
+        public boolean getPlayerOnlyCommand() { return playerOnlyCommand; }
     }
 }

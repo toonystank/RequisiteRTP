@@ -3,6 +3,7 @@ package com.toonystank.requisitertp.command;
 import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.manager.BaseCommand;
 
+import com.toonystank.requisitertp.utils.MessageUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -12,7 +13,9 @@ import java.util.List;
 
 public class RTPCommand extends BaseCommand{
 
-    protected RTPCommand(RequisiteRTP plugin) {
+    private final RequisiteRTP plugin;
+
+    public RTPCommand(RequisiteRTP plugin) {
         super(plugin, "rtp"
                 ,false
                 , false
@@ -20,6 +23,7 @@ public class RTPCommand extends BaseCommand{
                 ,"/rtp"
                 ,"rtp"
                 , "wild", "wilderness", "randomtp");
+        this.plugin = plugin;
         registerSubCommand("reload", new ReloadCommand());
     }
 
@@ -34,8 +38,8 @@ public class RTPCommand extends BaseCommand{
 
         Player player = RequisiteRTP.getInstance().getServer().getPlayer(args[0]);
         if (player == null) return;
-
-    
+        plugin.getRtpManager().addToQueue(player);
+        MessageUtils.sendMessage(sender, "&aYou have been added to the queue to teleport to a random location!");
     }
 
     @Override
@@ -44,6 +48,7 @@ public class RTPCommand extends BaseCommand{
             player = RequisiteRTP.getInstance().getServer().getPlayer(args[0]);
         }
         if (player == null) return;
-        
+        plugin.getRtpManager().addToQueue(player);
+    //    MessageUtils.sendMessage(player, "&aYou have been added to the queue to teleport to a random location!");
     }
 }
