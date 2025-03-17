@@ -17,7 +17,7 @@ public class MainConfig extends FileConfig{
     private int maximumZ;
 
     public MainConfig() throws IOException {
-        super("config.yml",false,false);
+        super("config.yml",false,true);
         init();
     }
 

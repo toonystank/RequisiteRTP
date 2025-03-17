@@ -14,7 +14,7 @@ public class LanguageConfig extends FileConfig {
     private String noPermission;
 
     public LanguageConfig() throws IOException {
-        super("language.yml",false,false);
+        super("language.yml",false,true);
         init();
     }
 
