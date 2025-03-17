@@ -104,6 +104,7 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
             commandMap.register(plugin.getName(), command);
             return command;
         } catch (Exception e) {
+            MessageUtils.toConsole("Failed to register command: " + commandData.getName(),true);
             e.printStackTrace();
             return null;
         }
