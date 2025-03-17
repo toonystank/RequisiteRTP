@@ -1,5 +1,6 @@
 package com.toonystank.requisitertp.rtp;
 
+import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -43,18 +44,24 @@ public class RTPManager {
     }
 
     public Location findSafeLocation(World world) {
-        MessageUtils.toConsole("finding safeLocation in " + world.getName(),true);
-        int radius = (int) world.getWorldBorder().getSize() / 2;
+        MessageUtils.toConsole("Finding safe location in " + world.getName(), true);
+
+        int minimumX = RequisiteRTP.getInstance().getMainConfig().getMinimumX();
+        int maximumX = RequisiteRTP.getInstance().getMainConfig().getMaximumX();
+        int minimumZ = RequisiteRTP.getInstance().getMainConfig().getMinimumZ();
+        int maximumZ = RequisiteRTP.getInstance().getMainConfig().getMaximumZ();
+
         int attempts = 50; // Maximum attempts to find a safe spot
 
         for (int i = 0; i < attempts; i++) {
-            int x = random.nextInt(radius * 2) - radius;
-            int z = random.nextInt(radius * 2) - radius;
+            int x = random.nextInt((maximumX - minimumX) + 1) + minimumX;
+            int z = random.nextInt((maximumZ - minimumZ) + 1) + minimumZ;
+
             Location location = new Location(world, x, world.getHighestBlockYAt(x, z), z);
-            MessageUtils.toConsole("location finder attempts " + i + " location is " + location,true);
+            MessageUtils.toConsole("Location finder attempt " + i + " | Location: " + location, true);
 
             if (isSafeLocation(location) && isLocationAllowed(location)) {
-                MessageUtils.toConsole("location is safe and allowed " ,true);
+                MessageUtils.toConsole("Location is safe and allowed", true);
                 return location;
             }
         }
