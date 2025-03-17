@@ -1,7 +1,6 @@
 package com.toonystank.requisitertp.command;
 
 import com.toonystank.requisitertp.RequisiteRTP;
-import com.toonystank.requisitertp.manager.BaseCommand;
 
 import com.toonystank.requisitertp.utils.MessageUtils;
 import org.bukkit.command.CommandSender;

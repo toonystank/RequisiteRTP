@@ -1,4 +1,4 @@
-package com.toonystank.requisitertp.manager;
+package com.toonystank.requisitertp.command;
 
 import org.bukkit.command.CommandSender;
 import java.util.List;

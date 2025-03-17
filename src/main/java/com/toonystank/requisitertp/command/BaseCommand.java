@@ -1,4 +1,4 @@
-package com.toonystank.requisitertp.manager;
+package com.toonystank.requisitertp.command;
 
 import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.utils.Handlers;

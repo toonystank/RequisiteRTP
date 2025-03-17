@@ -6,7 +6,6 @@ import java.util.List;
 import com.toonystank.requisitertp.RequisiteRTP;
 import org.bukkit.command.CommandSender;
 
-import com.toonystank.requisitertp.manager.SubCommand;
 import com.toonystank.requisitertp.utils.Handlers;
 
 public class ReloadCommand implements SubCommand {
