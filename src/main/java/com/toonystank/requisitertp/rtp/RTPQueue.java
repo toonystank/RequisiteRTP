@@ -10,19 +10,15 @@ import org.bukkit.entity.Player;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class RTPQueue {
 
     private final Queue<UUID> teleportQueue;
     private final RTPManager rtpManager;
-    private final ExecutorService executorService;
 
     public RTPQueue(RTPManager rtpManager) {
         this.rtpManager = rtpManager;
         this.teleportQueue = new ConcurrentLinkedQueue<>();
-        this.executorService = Executors.newFixedThreadPool(2);
         processQueue();
     }
 
@@ -43,16 +39,16 @@ public class RTPQueue {
             Player player = Bukkit.getPlayer(playerUUID);
             if (!(player != null && player.isOnline())) return;
             World world = player.getWorld();
-            executorService.submit(() -> {
+
+            Bukkit.getScheduler().runTaskAsynchronously(RequisiteRTP.getInstance(), () -> {
                 Location randomLocation = rtpManager.findSafeLocation(world);
                 if (randomLocation == null) return;
                 Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(), () -> {
                     randomLocation.getChunk().load();
                     PaperLib.teleportAsync(player, randomLocation).thenRun(() -> BaseEffect.removeQueuedTeleportingPlayer(player));
                 });
-
             });
 
-        }, 0L, 1); // Runs every second
+        }, 0L, 20L); // Runs every second
     }
 }
