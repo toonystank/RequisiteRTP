@@ -2,6 +2,7 @@ package com.toonystank.requisitertp.utils;
 
 import com.toonystank.requisitertp.RequisiteRTP;
 import de.themoep.minedown.adventure.MineDown;
+import lombok.Setter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -21,11 +22,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class MessageUtils {
 
+    @Setter
     private static BukkitAudiences audience;
-
-    public MessageUtils(BukkitAudiences bukkitAudiences) {
-        audience = bukkitAudiences;
-    }
 
 
     public static void sendMessage(List<Player> sender, String message) {
@@ -141,8 +139,8 @@ public class MessageUtils {
     public static void error(String message) {
         message = message + ". Server version: " + RequisiteRTP.getInstance().getServer().getVersion() + ". Plugin version: " + RequisiteRTP.getInstance().getDescription().getVersion() + ". Please report this error to the plugin developer.";
         message = "[" + RequisiteRTP.getInstance().getPluginName()+ "] " + message;
-        Component component = new MineDown(message).toComponent();
-        error(component);
+        RequisiteRTP.getInstance().getLogger().warning(message);
+
     }
     public static void error(Component component) {
         try {
