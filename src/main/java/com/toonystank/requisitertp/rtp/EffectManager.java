@@ -1,11 +1,10 @@
 package com.toonystank.requisitertp.rtp;
 
 import com.toonystank.requisitertp.RequisiteRTP;
-import com.toonystank.requisitertp.rtp.effect.SpiralEffect;
 import com.toonystank.requisitertp.utils.FileConfig;
-import com.toonystank.requisitertp.utils.Handlers;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -13,6 +12,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Getter
 public class EffectManager extends FileConfig {
@@ -20,19 +22,15 @@ public class EffectManager extends FileConfig {
     private static final Map<String, BaseEffect.Effect> effects = new HashMap<>();
     private static final Map<BaseEffect.Effect, BaseEffect> effectInstances = new HashMap<>();
 
+    @Getter
     private static EffectManager effectManager;
 
     public EffectManager() throws IOException {
-        super("effects.yml", "data", false, false);
+        super("effects.yml", false, false);
         effectManager = this;
-        init();
     }
 
-    public void init() throws IOException {
-        registerEffect("Spiral",true, Collections.singletonList("Spawns particles around player"),Collections.emptyList(), "effect.spiral", SpiralEffect.class);
-    }
-
-    public static BaseEffect.Effect registerEffect(String name,
+    public BaseEffect.Effect registerEffect(String name,
                                                    boolean enabled,
                                                    List<String> description,
                                                    List<String> commandsToRun,
@@ -48,30 +46,30 @@ public class EffectManager extends FileConfig {
         return registerEffect(effect);
     }
 
-    public static BaseEffect.Effect registerEffect(BaseEffect.Effect effect) throws IOException {
+    public BaseEffect.Effect registerEffect(BaseEffect.Effect effect) throws IOException {
         MessageUtils.toConsole("loading effect "+ effect.getName() ,true);
         loadEffectClassData(effect);
         effects.put(effect.getName(), effect);
         return effect;
     }
-    private static void loadEffectClassData(BaseEffect.Effect effect) throws IOException {
-        boolean enabled = effectManager.getBoolean(effect.getName() + ".enabled", effect.isEnabled());
+    private void loadEffectClassData(BaseEffect.Effect effect) throws IOException {
+        boolean enabled = this.getBoolean(effect.getName() + ".enabled", effect.isEnabled());
         effect.setEnabled(enabled);
 
-        List<String> description = effectManager.getStringList(effect.getName() + ".description",effect.getDescription());
+        List<String> description = this.getStringList(effect.getName() + ".description",effect.getDescription());
         effect.setDescription(description);
 
-        List<String> commandsToRun = effectManager.getStringList(effect.getName() + ".commandsToRun",effect.getCommandsToRun());
+        List<String> commandsToRun = this.getStringList(effect.getName() + ".commandsToRun",effect.getCommandsToRun());
         effect.setCommandsToRun(commandsToRun);
 
         MessageUtils.toConsole("loaded data from config " + enabled + " " + description + " " + commandsToRun,true);
         loadEffectClass(effect);
     }
 
-    private static void loadEffectClass(BaseEffect.Effect effect) {
+    private void loadEffectClass(BaseEffect.Effect effect) {
         try {
-            Constructor<? extends BaseEffect> constructor = effect.getEffectClass().getConstructor(boolean.class, List.class, List.class);
-            BaseEffect baseEffect = constructor.newInstance(effect.isEnabled(), effect.getDescription(), effect.getCommandsToRun());
+            Constructor<? extends BaseEffect> constructor = effect.getEffectClass().getConstructor(BaseEffect.Effect.class);
+            BaseEffect baseEffect = constructor.newInstance(effect);
             MessageUtils.toConsole("effect class " + baseEffect.getClass().getName() + " is loaded",true);
             effectInstances.put(effect, baseEffect);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
@@ -88,8 +86,8 @@ public class EffectManager extends FileConfig {
         return new ArrayList<>(effects.values());
     }
 
-    public List<BaseEffect.Effect> getEnabledEffects() {
-        List<BaseEffect.Effect> enabledEffects = new ArrayList<>();
+    public Queue<BaseEffect.Effect> getEnabledEffects() {
+        Queue<BaseEffect.Effect> enabledEffects = new ConcurrentLinkedQueue<>();
         for (BaseEffect.Effect effect : effects.values()) {
             if (effect.isEnabled()) {
                 enabledEffects.add(effect);
@@ -98,52 +96,42 @@ public class EffectManager extends FileConfig {
         return enabledEffects;
     }
 
-    public void runSuitableEffect(Player player) {
-        List<BaseEffect.Effect> suitableEffects = getSuitableEffectsForPlayer(player);
-        if (suitableEffects.isEmpty()) return;
-        suitableEffects.forEach(effect -> startEffectForPlayer(player, effect));
-    }
 
-    private List<BaseEffect.Effect> getSuitableEffectsForPlayer(Player player) {
-        List<BaseEffect.Effect> suitableEffects = new ArrayList<>();
-        for (BaseEffect.Effect effect : getEnabledEffects()) {
-            if (Handlers.hasPermission(player, effect.getPermissionNode())) {
-                suitableEffects.add(effect);
-            }
+    public CompletionStage<Boolean> runSuitableEffect(Player player) {
+        Queue<BaseEffect.Effect> enabledEffects = getEnabledEffects();
+        if (enabledEffects.isEmpty()) {
+            return CompletableFuture.completedFuture(true);
         }
-        return suitableEffects;
-    }
 
-    private void startEffectForPlayer(Player player, BaseEffect.Effect effect) {
-        BaseEffect effectInstance = effectInstances.get(effect);
-        if (effectInstance == null || BaseEffect.isQueuedTeleportingPlayer(player)) {
-            return;
-        }
-        BaseEffect.addQueuedTeleportingPlayer(player);
-        runEffectTask(player, effectInstance);
-    }
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        int waitTime = RequisiteRTP.getInstance().getMainConfig().getTeleportWaitingTime() * 20; // Convert to ticks
 
-    private void runEffectTask(Player player, BaseEffect effectInstance) {
+
         new BukkitRunnable() {
-            int ticks = 0;
+            int counter = 0;
 
             @Override
             public void run() {
-                if (!BaseEffect.isQueuedTeleportingPlayer(player)) {
-                    cancel();
+                if (counter >= waitTime) {
+                    this.cancel();
+                    future.complete(true);
                     return;
                 }
-                try {
-                    effectInstance.runEffect(player);
-                    if (++ticks >= 10) {
-                        cancel();
-                        BaseEffect.removeQueuedTeleportingPlayer(player);
+                for (BaseEffect.Effect enabledEffect : enabledEffects) {
+                    BaseEffect baseEffect = effectInstances.get(enabledEffect);
+                    if (baseEffect == null) continue;
+                    if (baseEffect.hasToStop(player)) {
+                        this.cancel();
+                        future.complete(false);
+                        return;
                     }
-                } catch (Exception e) {
-                    cancel();
-                    BaseEffect.removeQueuedTeleportingPlayer(player);
+                    Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(),() -> effectInstances.get(enabledEffect).applyEffect(player,counter));
                 }
+                counter += 2;
             }
-        }.runTaskTimerAsynchronously(RequisiteRTP.getInstance(), 0, 1);
+        }.runTaskTimerAsynchronously(RequisiteRTP.getInstance(), 0L, 2L);
+
+        return future;
     }
+
 }

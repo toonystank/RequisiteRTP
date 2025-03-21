@@ -1,6 +1,7 @@
 package com.toonystank.requisitertp.rtp;
 
 import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.utils.MessageUtils;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,32 +24,41 @@ public class RTPQueue {
     }
 
     public void addPlayer(Player player) {
-        if (!teleportQueue.contains(player.getUniqueId())) {
-            rtpManager.getEffectManager().runSuitableEffect(player);
-            teleportQueue.add(player.getUniqueId());
-        }
+        UUID playerUUID = player.getUniqueId();
+
+        if (teleportQueue.contains(playerUUID)) return;
+
+        teleportQueue.add(playerUUID);
     }
 
     private void processQueue() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(RequisiteRTP.getInstance(), () -> {
-            if (teleportQueue.isEmpty()) {
-                return;
-            }
-            UUID playerUUID = teleportQueue.poll();
+            if (teleportQueue.isEmpty()) return;
+
+            UUID playerUUID = teleportQueue.peek();
             if (playerUUID == null) return;
+
             Player player = Bukkit.getPlayer(playerUUID);
-            if (!(player != null && player.isOnline())) return;
+            if (player == null || !player.isOnline()) return;
             World world = player.getWorld();
 
-            Bukkit.getScheduler().runTaskAsynchronously(RequisiteRTP.getInstance(), () -> {
-                Location randomLocation = rtpManager.findSafeLocation(world);
-                if (randomLocation == null) return;
-                Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(), () -> {
-                    randomLocation.getChunk().load();
-                    PaperLib.teleportAsync(player, randomLocation).thenRun(() -> BaseEffect.removeQueuedTeleportingPlayer(player));
-                });
+            Location randomLocation = rtpManager.findSafeLocation(player, world);
+            if (randomLocation == null) return;
+
+            rtpManager.getEffectManager().runSuitableEffect(player).whenComplete((result, ignored) -> {
+                if (result) {
+                    teleportQueue.remove(playerUUID);
+
+                    // Load chunk & teleport
+                    Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(), () -> {
+                        randomLocation.getChunk().load();
+                        PaperLib.teleportAsync(player, randomLocation);
+                    });
+                }else {
+                    MessageUtils.sendMessage(player,"&cAn error occurred while teleporting you to a random location. Please try again.");
+                }
             });
 
-        }, 0L, 20L); // Runs every second
+        }, 0L, 20L);
     }
 }

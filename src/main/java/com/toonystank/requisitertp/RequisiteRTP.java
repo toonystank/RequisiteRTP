@@ -34,7 +34,6 @@ public final class RequisiteRTP extends JavaPlugin {
 
         this.adventure = BukkitAudiences.create(this);
         MessageUtils.setAudience(adventure);
-
         try {
             this.mainConfig = new MainConfig();
         } catch (IOException e) {

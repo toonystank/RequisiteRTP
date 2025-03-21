@@ -3,18 +3,24 @@ package com.toonystank.requisitertp.utils;
 import lombok.Getter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Getter
 public class MainConfig extends FileConfig{
 
-    private boolean smallText;
-    private boolean debug;
+    private boolean utilsSmallText;
+    private boolean utilsDebug;
     private LanguageConfig languageConfig;
 
-    private int minimumX;
-    private int maximumX;
-    private int minimumZ;
-    private int maximumZ;
+    private int worldMinimumX;
+    private int worldMaximumX;
+    private int worldMinimumZ;
+    private int worldMaximumZ;
+
+    private int teleportWaitingTime;
+    private String teleportLookingForASafeLocation;
+    private String teleportLookingForASafeLocationTitle;
+    private String teleportLookingForASafeLocationSubtitle;
 
     public MainConfig() throws IOException {
         super("config.yml",false,true);
@@ -22,13 +28,20 @@ public class MainConfig extends FileConfig{
     }
 
     private void init() throws IOException {
-        smallText = getBoolean("utils.smallText",true);
-        debug = getBoolean("utils.debug",false);
+        utilsSmallText = getBoolean("utils.smallText",true);
+        utilsDebug = getBoolean("utils.debug",false);
 
-        minimumX = getInt("world.minimumX",1000);
-        maximumX = getInt("world.maximumX",1000);
-        minimumZ = getInt("world.minimumZ",1000);
-        maximumZ = getInt("world.maximumZ",1000);
+        worldMinimumX = getInt("world.minimumX",100);
+        worldMaximumX = getInt("world.maximumX",10000);
+        worldMinimumZ = getInt("world.minimumZ",100);
+        worldMaximumZ = getInt("world.maximumZ",10000);
+
+        getConfig().setComments("teleport.waitingTime", Collections.singletonList("The time in seconds the player has to wait before teleporting"));
+        teleportWaitingTime = getInt("teleport.waitingTime",5);
+
+        teleportLookingForASafeLocation = getString("teleport.lookingForASafeLocation","&6Finding safe location to teleport");
+        teleportLookingForASafeLocationTitle = getString("teleport.lookingForASafeLocationTitle","&a&l[Teleportation] ");
+        teleportLookingForASafeLocationSubtitle = getString("teleport.lookingForASafeLocationSubtitle","&b&l>> &cFinding safe location to teleport &b&l<<");
 
         try {
             if (languageConfig != null) {

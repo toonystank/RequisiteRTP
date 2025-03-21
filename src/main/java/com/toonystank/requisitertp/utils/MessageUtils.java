@@ -14,10 +14,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class MessageUtils {
@@ -43,8 +43,9 @@ public class MessageUtils {
 
     public static void sendMessage(Player sender, String message) {
         if (!sender.getPlayer().isOnline()) return;
-        sendMessage(sender,message);
+        sendMessage(sender,message,false);
     }
+
     public static void sendMessage(List<Player> sender, String message,boolean titleMessage) {
         if (sender.isEmpty()) return;
         Set<Player> playersSentMessage = new HashSet<>();
@@ -71,77 +72,79 @@ public class MessageUtils {
             return;
         }
         final Player player = (Player) sender;
-        final Component mainTitle = format(message);
-        final Title title = Title.title(mainTitle, Component.empty());
-        audience.sender(player).showTitle(title);
+        sendTitleMessage(player,message,"");
     }
+    public static void sendTitleMessage(Player player,String title,String subTitle) {
+        final Component mainTitle = format(title);
+        final Component mainSubTitle = format(subTitle);
+        final Title titleMessage = Title.title(mainTitle, mainSubTitle, Title.Times.times(Duration.ZERO,Duration.ofSeconds(1),Duration.ofSeconds(1)));
+        audience.sender(player).showTitle(titleMessage);
+    }
+
     public static void sendMessage(CommandSender sender, String message) {
         MessageUtils.toConsole(message  + "  sending to player " + sender ,true );
-        if (RequisiteRTP.getInstance().getMainConfig().isSmallText()) {
+        if (RequisiteRTP.getInstance().getMainConfig().isUtilsSmallText()) {
             message = SmallLetterConvertor.convert(message);
         }
         Component component = new MineDown(message).toComponent();
         component = component.decoration(TextDecoration.ITALIC, false);
         audience.sender(sender).sendMessage(component);
     }
-    public static void sendMessage(Player sender, Component message) {
-        sendMessage((CommandSender) sender, message);
-    }
-    public static void sendMessage(CommandSender sender, Component message) {
-        message = message.decoration(TextDecoration.ITALIC, false);
-        audience.sender(sender).sendMessage(message);
-    }
-    public static @NotNull List<Component> format(List<String> list) {
-        return list.stream().map(MessageUtils::format).collect(Collectors.toList());
-    }
+
+
     public static @NotNull Component format(String message) {
-        return format(message,false);
+        boolean isSmallText = RequisiteRTP.getInstance().getMainConfig().isUtilsSmallText();
+        return format(message,isSmallText);
     }
+
     public static @NotNull Component format(String message,boolean smallFont) {
+        if (message.isEmpty()) return Component.empty();
         if (smallFont) message = SmallLetterConvertor.convert(message);
         Component component = new MineDown(message).toComponent();
         component = component.decoration(TextDecoration.ITALIC, false);
         return component;
     }
+
     public static String formatString(String message) {
         if (message == null) return "null";
-        return formatString(message,false);
+        boolean isSmallText = RequisiteRTP.getInstance().getMainConfig().isUtilsSmallText();
+        return formatString(message,isSmallText);
     }
+
     public static BaseComponent[] formatString(String message,int i) {
         return de.themoep.minedown.MineDown.parse(message);
     }
+
     public static String formatString(String message,boolean smallFont) {
         if (smallFont) message = SmallLetterConvertor.convert(message);
         BaseComponent[] baseComponents = de.themoep.minedown.MineDown.parse(message);
         return TextComponent.toLegacyText(baseComponents);
     }
-    public static void toConsole(List<String> list, boolean string) {
-        list.forEach(message -> toConsole(message,false));
-    }
-    public static void toConsole(List<Component> list) {
-        list.forEach(component -> toConsole(component, false));
-    }
+
+
     public static void toConsole(String message, boolean debug) {
         if (debug) {
-            if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
+            if (!RequisiteRTP.getInstance().getMainConfig().isUtilsDebug()) return;
         }
         message = "&a[RequisiteRTP]&r " + message;
         Component component = new MineDown(message).toComponent();
         toConsole(component, debug);
     }
+
     public static void toConsole(Component component, boolean debug) {
         if (debug) {
-            if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
+            if (!RequisiteRTP.getInstance().getMainConfig().isUtilsDebug()) return;
         }
         component = component.decoration(TextDecoration.ITALIC,false);
         audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
     }
+
     public static void error(String message) {
         message = message + ". Server version: " + RequisiteRTP.getInstance().getServer().getVersion() + ". Plugin version: " + RequisiteRTP.getInstance().getDescription().getVersion() + ". Please report this error to the plugin developer.";
-        message = "[" + RequisiteRTP.getInstance().getPluginName()+ "] " + message;
-        RequisiteRTP.getInstance().getLogger().warning(message);
-
+        Component component = new MineDown(message).toComponent();
+        error(component);
     }
+
     public static void error(Component component) {
         try {
             component = component.decoration(TextDecoration.ITALIC, false);
@@ -151,12 +154,14 @@ public class MessageUtils {
             error("an error occurred while sending a message");
         }
     }
+
     public static void debug(String message) {
-        if (!RequisiteRTP.getInstance().getMainConfig().isDebug()) return;
+        if (!RequisiteRTP.getInstance().getMainConfig().isUtilsDebug()) return;
         message = message + ". Server version: " + RequisiteRTP.getInstance().getServer().getVersion() + ". Plugin version: " + RequisiteRTP.getInstance().getDescription().getVersion() + ". To stop receiving this messages please update your config.yml";
         Component component = new MineDown(message).toComponent();
         debug(component);
     }
+
     public static void debug(Component component) {
         try {
             component = component.decoration(TextDecoration.ITALIC, false);
@@ -170,13 +175,11 @@ public class MessageUtils {
         Component component = new MineDown(message).toComponent();
         warning(component);
     }
+
     public static void warning(Component component) {
         component = component.decoration(TextDecoration.ITALIC,false);
         component = component.color(TextColor.fromHexString("#FFC107"));
         audience.sender(RequisiteRTP.getInstance().getServer().getConsoleSender()).sendMessage(component);
     }
-    public static String replaceGrayWithWhite(String inputString) {
-        if (inputString.contains("&7")) inputString = inputString.replace("&7", "&f");
-        return inputString;
-    }
+
 }

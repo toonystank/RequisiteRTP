@@ -1,49 +1,34 @@
 package com.toonystank.requisitertp.rtp.effect;
 
-import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.rtp.BaseEffect;
-import org.bukkit.entity.Player;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.List;
+import org.bukkit.Particle;
+import org.bukkit.entity.Player;
 
 public class SpiralEffect extends BaseEffect {
 
-    public SpiralEffect(boolean enabled, List<String> description, List<String> commandsToRun) {
-        super("Spiral", enabled, description, commandsToRun, "effect.spiral", SpiralEffect.class);
-    }
     public SpiralEffect(BaseEffect.Effect effect) {
         super(effect);
     }
 
     @Override
-    public void runEffect(Player player) {
-        if (!player.isOnline() || isQueuedTeleportingPlayer(player)) return;
+    public void applyEffect(Player player, int tickCount) {
+        Location loc = player.getLocation();
+        double radius = 1.5;
+        double yOffset = tickCount * 0.05; // Spiral effect increases over time
 
-        new BukkitRunnable() {
-            double t = 0;
-            final Location location = player.getLocation();
+        for (int i = 0; i < 360; i += 30) {
+            double angle = Math.toRadians(i);
+            double x = loc.getX() + radius * Math.cos(angle);
+            double z = loc.getZ() + radius * Math.sin(angle);
+            Location particleLoc = new Location(loc.getWorld(), x, loc.getY() + yOffset, z);
+            loc.getWorld().spawnParticle(Particle.FLAME, particleLoc, 1, 0, 0, 0, 0);
+        }
+    }
 
-            @Override
-            public void run() {
-                if (!player.isOnline() || !isQueuedTeleportingPlayer(player)) {
-                    removeQueuedTeleportingPlayer(player);
-                    cancel();
-                    return;
-                }
+    @Override
+    public boolean hasToStop(Player player) {
 
-                double x = 0.5 * t * Math.cos(t);
-                double y = 0.1 * t;
-                double z = 0.5 * t * Math.sin(t);
-                location.getWorld().spigot().playEffect(location.clone().add(x, y, z), org.bukkit.Effect.FLAME, 0, 0, 0, 0, 0, 1, 1, 16);
-                t += Math.PI / 8;
-
-                if (t > Math.PI * 4) {
-                    removeQueuedTeleportingPlayer(player);
-                    cancel();
-                }
-            }
-        }.runTask(RequisiteRTP.getInstance());
+        return false;
     }
 }

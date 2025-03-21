@@ -1,16 +1,19 @@
 package com.toonystank.requisitertp.rtp;
 
 import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.rtp.effect.SpiralEffect;
+import com.toonystank.requisitertp.rtp.effect.TitleEffect;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import lombok.var;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -28,9 +31,20 @@ public class RTPManager {
         this.protectionHooks = new ArrayList<>();
         try {
             this.effectManager = new EffectManager();
+            initializeEffects();
         } catch (IOException e) {
             MessageUtils.error("An error happened when loading effects.yml " + e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+    public void initializeEffects() {
+        MessageUtils.toConsole("initializing effects..",false);
+        try {
+            effectManager.registerEffect("Spiral",true, Collections.singletonList("Spawns particles around player"),Collections.emptyList(), "effect.spiral", SpiralEffect.class);
+            effectManager.registerEffect("Title",true, Collections.singletonList("Shows a title to the player"),Collections.emptyList(), "effect.title", TitleEffect.class);
+        } catch (IOException e) {
+            MessageUtils.error("An error happened when loading effect " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -43,45 +57,112 @@ public class RTPManager {
         protectionHooks.add(hook);
     }
 
-    public Location findSafeLocation(World world) {
+    public Location findSafeLocation(Player player, World world) {
         MessageUtils.toConsole("Finding safe location in " + world.getName(), true);
 
-        int minimumX = RequisiteRTP.getInstance().getMainConfig().getMinimumX();
-        int maximumX = RequisiteRTP.getInstance().getMainConfig().getMaximumX();
-        int minimumZ = RequisiteRTP.getInstance().getMainConfig().getMinimumZ();
-        int maximumZ = RequisiteRTP.getInstance().getMainConfig().getMaximumZ();
+        var mainConfig = RequisiteRTP.getInstance().getMainConfig();
+        int minX = mainConfig.getWorldMinimumX();
+        int maxX = mainConfig.getWorldMaximumX();
+        int minZ = mainConfig.getWorldMinimumZ();
+        int maxZ = mainConfig.getWorldMaximumZ();
 
-        int attempts = 50; // Maximum attempts to find a safe spot
+        WorldBorder border = world.getWorldBorder();
+        double borderSize = border.getSize() / 2;
+        Location borderCenter = border.getCenter();
 
-        for (int i = 0; i < attempts; i++) {
-            int x = random.nextInt((maximumX - minimumX) + 1) + minimumX;
-            int z = random.nextInt((maximumZ - minimumZ) + 1) + minimumZ;
+        int borderMinX = (int) (borderCenter.getX() - borderSize);
+        int borderMaxX = (int) (borderCenter.getX() + borderSize);
+        int borderMinZ = (int) (borderCenter.getZ() - borderSize);
+        int borderMaxZ = (int) (borderCenter.getZ() + borderSize);
 
-            Location location = new Location(world, x, world.getHighestBlockYAt(x, z), z);
-            MessageUtils.toConsole("Location finder attempt " + i + " | Location: " + location, true);
+        int finalMinX = Math.max(minX, borderMinX);
+        int finalMaxX = Math.min(maxX, borderMaxX);
+        int finalMinZ = Math.max(minZ, borderMinZ);
+        int finalMaxZ = Math.min(maxZ, borderMaxZ);
 
-            if (isSafeLocation(location) && isLocationAllowed(location)) {
-                MessageUtils.toConsole("Location is safe and allowed", true);
-                return location;
+        Random random = new Random();
+        int centerX = (finalMinX + finalMaxX) / 2;
+        int centerZ = (finalMinZ + finalMaxZ) / 2;
+
+        int maxAttempts = 100;
+        int maxRadius = Math.max(finalMaxX - finalMinX, finalMaxZ - finalMinZ) / 2;
+
+        for (int attempts = 0; attempts < maxAttempts; attempts++) {
+
+            MessageUtils.sendTitleMessage(player
+                    , RequisiteRTP.getInstance().getMainConfig().getTeleportLookingForASafeLocationTitle()
+                    , RequisiteRTP.getInstance().getMainConfig().getTeleportLookingForASafeLocationSubtitle());
+
+
+            double angle = Math.toRadians(random.nextInt(360));
+            int radius = random.nextInt(maxRadius);
+
+            int x = centerX + (int) (Math.cos(angle) * radius);
+            int z = centerZ + (int) (Math.sin(angle) * radius);
+
+            // Ensure it's within allowed boundaries
+            if (x < finalMinX || x > finalMaxX || z < finalMinZ || z > finalMaxZ) {
+                continue;
+            }
+
+            int y = world.getHighestBlockYAt(x, z) + 1;
+            Location randomLocation = new Location(world, x + 0.5, y, z + 0.5);
+
+            MessageUtils.toConsole("Trying location " + randomLocation, true);
+            if (isSafeLocation(randomLocation) && isLocationAllowed(randomLocation)) {
+                MessageUtils.toConsole("Found a valid location " + randomLocation, true);
+                return randomLocation;
             }
         }
-        return null; // No safe location found after max attempts
+
+        MessageUtils.toConsole("Failed to find a safe location after " + maxAttempts + " attempts.", true);
+        return null;
     }
+
 
     private boolean isSafeLocation(Location location) {
-        Block block = location.getBlock();
-        Block above = location.clone().add(0, 1, 0).getBlock();
-        Block below = location.clone().add(0, -1, 0).getBlock();
+        if (location == null) return false;
 
-        return below.getType().isSolid() && !block.getType().isSolid() && !above.getType().isSolid()
-                && below.getType() != Material.LAVA && below.getType() != Material.WATER;
+        Block block = location.getBlock();
+        Block above = block.getRelative(BlockFace.UP);
+        Block below = block.getRelative(BlockFace.DOWN);
+
+        Material belowType = below.getType();
+        Material blockType = block.getType();
+        Material aboveType = above.getType();
+
+        // Ensure the block below is solid and not dangerous
+        if (!belowType.isSolid() || isDangerousBlock(belowType)) {
+            return false;
+        }
+
+        // Ensure the block and the one above it are air or passable
+        if (isPassable(blockType) || isPassable(aboveType)) {
+            return false;
+        }
+        // Ensure it's not inside a cave or too dark
+        return !isDarkCave(location);
     }
+    private boolean isDangerousBlock(Material type) {
+        return type == Material.LAVA || type == Material.FIRE || type == Material.CACTUS
+                || type == Material.MAGMA_BLOCK || type == Material.CAMPFIRE;
+    }
+
+    private boolean isPassable(Material type) {
+        return type != Material.AIR && type != Material.CAVE_AIR && type != Material.LEGACY_GRASS
+                && type != Material.TALL_GRASS && type != Material.FERN
+                && type != Material.SNOW && !Tag.DOORS.isTagged(type) && !Tag.FENCES.isTagged(type);
+    }
+
+    private boolean isDarkCave(Location location) {
+        Block block = location.getBlock();
+        return block.getLightLevel() < 4 && block.getRelative(BlockFace.UP, 3).getType().isSolid();
+    }
+
 
     private boolean isLocationAllowed(Location location) {
         for (RTPProtectionHook hook : protectionHooks) {
-            if (!hook.isAllowed(location)) {
-                return false;
-            }
+            if (!hook.isAllowed(location)) return false;
         }
         return true;
     }
