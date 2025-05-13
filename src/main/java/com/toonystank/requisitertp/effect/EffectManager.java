@@ -1,4 +1,4 @@
-package com.toonystank.requisitertp.rtp;
+package com.toonystank.requisitertp.effect;
 
 import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.utils.FileConfig;
@@ -105,7 +105,8 @@ public class EffectManager extends FileConfig {
 
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         int waitTime = RequisiteRTP.getInstance().getMainConfig().getTeleportWaitingTime() * 20; // Convert to ticks
-
+        BaseEffect.RunningResult runningResult = new BaseEffect.RunningResult(false,false);
+        BaseEffect.getActiveEffects().put(player,runningResult);
 
         new BukkitRunnable() {
             int counter = 0;
@@ -114,18 +115,28 @@ public class EffectManager extends FileConfig {
             public void run() {
                 if (counter >= waitTime) {
                     this.cancel();
+                    runningResult.setFinished(true);
                     future.complete(true);
                     return;
                 }
+                boolean firstCall = counter == 0;
+
                 for (BaseEffect.Effect enabledEffect : enabledEffects) {
                     BaseEffect baseEffect = effectInstances.get(enabledEffect);
                     if (baseEffect == null) continue;
-                    if (baseEffect.hasToStop(player)) {
+                    if (baseEffect.hasToStop(player, firstCall)) {
+                        runningResult.setCancelled(true);
                         this.cancel();
                         future.complete(false);
-                        return;
+                        break;
                     }
-                    Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(),() -> effectInstances.get(enabledEffect).applyEffect(player,counter));
+                    Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(),() -> {
+                        if (BaseEffect.isCancelled(player)) {
+                            MessageUtils.toConsole("Effect is canceled",true);
+                            return;
+                        }
+                        effectInstances.get(enabledEffect).applyEffect(player,counter);
+                    });
                 }
                 counter += 2;
             }

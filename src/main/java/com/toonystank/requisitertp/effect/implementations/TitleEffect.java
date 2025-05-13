@@ -1,0 +1,74 @@
+package com.toonystank.requisitertp.effect.implementations;
+
+import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.effect.BaseTimedEffect;
+import com.toonystank.requisitertp.effect.EffectManager;
+import com.toonystank.requisitertp.utils.MessageUtils;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class TitleEffect extends BaseTimedEffect {
+
+    private final String teleportDelayTitle;
+    private final String teleportDelaySubtitle;
+    private final String teleportCancelTitle;
+    private final String teleportCancelSubtitle;
+
+    private final Map<UUID, Location> playerLocations = new ConcurrentHashMap<>();
+
+    public TitleEffect(Effect effect) {
+        super(effect, Type.SECONDS);
+        EffectManager manager = EffectManager.getEffectManager();
+
+        this.teleportDelayTitle = getConfigString(manager, "Title.message.teleport_delay_title", "&a&l[Teleportation]");
+        this.teleportDelaySubtitle = getConfigString(manager, "Title.message.teleport_delay_subTitle", "&b&l>> &cTeleporting in &f{time}&c seconds &b&l<<");
+        this.teleportCancelTitle = getConfigString(manager, "Title.message.teleport_cancel_title", "&c&l[Teleportation Canceled]");
+        this.teleportCancelSubtitle = getConfigString(manager, "Title.message.teleport_cancel_subTitle", "&7You moved! Try again to teleport.");
+    }
+
+    private static String getConfigString(EffectManager manager, String path, String defaultValue) {
+        try {
+            return manager.getString(path, defaultValue);
+        } catch (IOException e) {
+            MessageUtils.error("Error loading TitleEffect config: " + e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public void applyTimedEffect(Player player, int tickCount) {
+        UUID playerUUID = player.getUniqueId();
+        playerLocations.putIfAbsent(playerUUID, player.getLocation());
+
+        int secondsLeft = (RequisiteRTP.getInstance().getMainConfig().getTeleportWaitingTime() * 20 - tickCount) / 20;
+
+        if (!hasToStop(player, false) && secondsLeft > 0) {
+            MessageUtils.sendTitleMessage(player, teleportDelayTitle, teleportDelaySubtitle.replace("{time}", String.valueOf(secondsLeft)));
+        } else {
+            playerLocations.remove(playerUUID);
+        }
+    }
+
+    @Override
+    public boolean hasToStop(Player player, boolean firstCall) {
+        if (firstCall) {
+            playerLocations.remove(player.getUniqueId());
+        }
+        if (hasPlayerMoved(player)) {
+            MessageUtils.sendTitleMessage(player, teleportCancelTitle, teleportCancelSubtitle);
+            updateRunningResult(player, true, false);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasPlayerMoved(Player player) {
+        Location initialLocation = playerLocations.get(player.getUniqueId());
+        return initialLocation != null && !initialLocation.equals(player.getLocation());
+    }
+}

@@ -83,6 +83,7 @@ public class MessageUtils {
 
     public static void sendMessage(CommandSender sender, String message) {
         MessageUtils.toConsole(message  + "  sending to player " + sender ,true );
+        message = RequisiteRTP.getInstance().getMainConfig().getLanguageConfig().getPrefix() + " " + message;
         if (RequisiteRTP.getInstance().getMainConfig().isUtilsSmallText()) {
             message = SmallLetterConvertor.convert(message);
         }

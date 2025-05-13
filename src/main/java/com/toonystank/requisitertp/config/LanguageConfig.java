@@ -1,5 +1,6 @@
-package com.toonystank.requisitertp.utils;
+package com.toonystank.requisitertp.config;
 
+import com.toonystank.requisitertp.utils.FileConfig;
 import lombok.Getter;
 
 import java.io.IOException;

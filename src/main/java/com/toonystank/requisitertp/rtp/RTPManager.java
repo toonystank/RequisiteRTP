@@ -1,8 +1,11 @@
 package com.toonystank.requisitertp.rtp;
 
 import com.toonystank.requisitertp.RequisiteRTP;
-import com.toonystank.requisitertp.rtp.effect.SpiralEffect;
-import com.toonystank.requisitertp.rtp.effect.TitleEffect;
+import com.toonystank.requisitertp.effect.EffectManager;
+import com.toonystank.requisitertp.effect.implementations.SpiralEffect;
+import com.toonystank.requisitertp.effect.implementations.TitleEffect;
+import com.toonystank.requisitertp.hooks.Hook;
+import com.toonystank.requisitertp.utils.Handlers;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
 import lombok.var;
@@ -23,7 +26,7 @@ public class RTPManager {
     private final Random random;
     private final RTPQueue rtpQueue;
     private final EffectManager effectManager;
-    private final List<RTPProtectionHook> protectionHooks;
+    private final List<Hook> protectionHooks;
 
     public RTPManager() {
         this.random = new Random();
@@ -53,7 +56,7 @@ public class RTPManager {
         rtpQueue.addPlayer(player);
     }
 
-    public void registerProtectionHook(RTPProtectionHook hook) {
+    public void registerProtectionHook(Hook hook) {
         protectionHooks.add(hook);
     }
 
@@ -109,7 +112,7 @@ public class RTPManager {
             Location randomLocation = new Location(world, x + 0.5, y, z + 0.5);
 
             MessageUtils.toConsole("Trying location " + randomLocation, true);
-            if (isSafeLocation(randomLocation) && isLocationAllowed(randomLocation)) {
+            if (isSafeLocation(randomLocation) && isLocationAllowed(player, randomLocation)) {
                 MessageUtils.toConsole("Found a valid location " + randomLocation, true);
                 return randomLocation;
             }
@@ -132,7 +135,7 @@ public class RTPManager {
         Material aboveType = above.getType();
 
         // Ensure the block below is solid and not dangerous
-        if (!belowType.isSolid() || isDangerousBlock(belowType)) {
+        if (!belowType.isSolid() || belowType.name().contains("LEAVES") || isDangerousBlock(belowType)) {
             return false;
         }
 
@@ -160,9 +163,12 @@ public class RTPManager {
     }
 
 
-    private boolean isLocationAllowed(Location location) {
-        for (RTPProtectionHook hook : protectionHooks) {
-            if (!hook.isAllowed(location)) return false;
+    private boolean isLocationAllowed(Player player,Location location) {
+        for (Hook hook : protectionHooks) {
+            if (!hook.getHookData().isEnabled()) continue;
+
+            if (Handlers.hasPermission(player, hook.getHookData().getBypassPermission())) return true;
+            if (!hook.isAllowed(player,location)) return false;
         }
         return true;
     }

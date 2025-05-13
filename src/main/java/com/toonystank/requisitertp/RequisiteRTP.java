@@ -1,11 +1,11 @@
 package com.toonystank.requisitertp;
 
 import com.toonystank.requisitertp.command.RTPCommand;
+import com.toonystank.requisitertp.hooks.HooksManager;
 import com.toonystank.requisitertp.rtp.RTPManager;
-import com.toonystank.requisitertp.utils.MainConfig;
+import com.toonystank.requisitertp.config.MainConfig;
 import com.toonystank.requisitertp.utils.MessageUtils;
 
-import io.papermc.lib.PaperLib;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
@@ -23,6 +23,7 @@ public final class RequisiteRTP extends JavaPlugin {
 
     private BukkitAudiences adventure;
     private MainConfig mainConfig;
+    private HooksManager hooksManager;
     private RTPCommand rtpCommand;
     private RTPManager rtpManager;
 
@@ -40,6 +41,7 @@ public final class RequisiteRTP extends JavaPlugin {
           MessageUtils.error("An error happened when loading config.yml " + e.getMessage());
             e.printStackTrace();
         }
+        this.hooksManager = new HooksManager();
         this.rtpCommand = new RTPCommand(this);
         this.rtpManager = new RTPManager();
 

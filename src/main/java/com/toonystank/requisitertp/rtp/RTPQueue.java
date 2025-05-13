@@ -14,45 +14,61 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RTPQueue {
 
-    private final Queue<UUID> teleportQueue;
+    private final Queue<UUID> forTeleportQueue;
+    private final Queue<UUID> onTeleportQueue;
     private final RTPManager rtpManager;
 
     public RTPQueue(RTPManager rtpManager) {
         this.rtpManager = rtpManager;
-        this.teleportQueue = new ConcurrentLinkedQueue<>();
+        this.forTeleportQueue = new ConcurrentLinkedQueue<>();
+        this.onTeleportQueue = new ConcurrentLinkedQueue<>();
         processQueue();
     }
 
     public void addPlayer(Player player) {
         UUID playerUUID = player.getUniqueId();
 
-        if (teleportQueue.contains(playerUUID)) return;
+        if (forTeleportQueue.contains(playerUUID)) return;
 
-        teleportQueue.add(playerUUID);
+        forTeleportQueue.add(playerUUID);
     }
 
     private void processQueue() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(RequisiteRTP.getInstance(), () -> {
-            if (teleportQueue.isEmpty()) return;
+            if (forTeleportQueue.isEmpty()) return;
 
-            UUID playerUUID = teleportQueue.peek();
+            UUID playerUUID = forTeleportQueue.poll();
             if (playerUUID == null) return;
 
             Player player = Bukkit.getPlayer(playerUUID);
             if (player == null || !player.isOnline()) return;
+
+            if (onTeleportQueue.contains(playerUUID)) {
+                MessageUtils.sendMessage(player,RequisiteRTP.getInstance().getMainConfig().getTeleportYouAlreadyOnTeleportQueue());
+                return;
+            }
+            onTeleportQueue.add(playerUUID);
+
+
             World world = player.getWorld();
 
             Location randomLocation = rtpManager.findSafeLocation(player, world);
             if (randomLocation == null) return;
 
             rtpManager.getEffectManager().runSuitableEffect(player).whenComplete((result, ignored) -> {
+                onTeleportQueue.poll();
                 if (result) {
-                    teleportQueue.remove(playerUUID);
+                    // removes the player from teleport queue as the player is already teleported. this is here to prevent duplicated teleports.
 
-                    // Load chunk & teleport
                     Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(), () -> {
                         randomLocation.getChunk().load();
-                        PaperLib.teleportAsync(player, randomLocation);
+                        PaperLib.teleportAsync(player, randomLocation).whenComplete((successfullyTeleported,throwable) -> {
+                            if (successfullyTeleported) {
+                                MessageUtils.sendTitleMessage(player
+                                        ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleported()
+                                        ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleportedSubTitle());
+                            }
+                        });
                     });
                 }else {
                     MessageUtils.sendMessage(player,"&cAn error occurred while teleporting you to a random location. Please try again.");

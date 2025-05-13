@@ -1,12 +1,14 @@
-package com.toonystank.requisitertp.utils;
+package com.toonystank.requisitertp.config;
 
+import com.toonystank.requisitertp.utils.FileConfig;
+import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
 
 import java.io.IOException;
 import java.util.Collections;
 
 @Getter
-public class MainConfig extends FileConfig{
+public class MainConfig extends FileConfig {
 
     private boolean utilsSmallText;
     private boolean utilsDebug;
@@ -18,9 +20,12 @@ public class MainConfig extends FileConfig{
     private int worldMaximumZ;
 
     private int teleportWaitingTime;
+    private String teleportYouAlreadyOnTeleportQueue;
     private String teleportLookingForASafeLocation;
     private String teleportLookingForASafeLocationTitle;
     private String teleportLookingForASafeLocationSubtitle;
+    private String teleportSuccessfullyTeleported;
+    private String teleportSuccessfullyTeleportedSubTitle;
 
     public MainConfig() throws IOException {
         super("config.yml",false,true);
@@ -39,9 +44,12 @@ public class MainConfig extends FileConfig{
         getConfig().setComments("teleport.waitingTime", Collections.singletonList("The time in seconds the player has to wait before teleporting"));
         teleportWaitingTime = getInt("teleport.waitingTime",5);
 
+        teleportYouAlreadyOnTeleportQueue = getString("teleport.youAlreadyOnTeleportQueue", "&7You Already on teleport queue.");
         teleportLookingForASafeLocation = getString("teleport.lookingForASafeLocation","&6Finding safe location to teleport");
         teleportLookingForASafeLocationTitle = getString("teleport.lookingForASafeLocationTitle","&a&l[Teleportation] ");
         teleportLookingForASafeLocationSubtitle = getString("teleport.lookingForASafeLocationSubtitle","&b&l>> &cFinding safe location to teleport &b&l<<");
+        teleportSuccessfullyTeleported = getString("teleport.successfullyTeleported","&a&l[Successful] ");
+        teleportSuccessfullyTeleportedSubTitle = getString("teleport.successfullyTeleportedSubTitle","&b&l>> &cSuccessfully teleported &b&l<<");
 
         try {
             if (languageConfig != null) {
