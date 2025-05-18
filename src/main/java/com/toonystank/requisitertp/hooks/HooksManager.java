@@ -1,5 +1,6 @@
 package com.toonystank.requisitertp.hooks;
 
+import com.toonystank.hooks.Hook;
 import com.toonystank.requisitertp.hooks.implementations.GriefPreventionHook;
 import com.toonystank.requisitertp.utils.FileConfig;
 import com.toonystank.requisitertp.utils.MessageUtils;
@@ -11,10 +12,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HooksManager {
+public class HooksManager implements com.toonystank.hooks.HooksManager {
 
     @Getter
     private static List<Hook> hooks = new ArrayList<>();
+    public static HooksManager instance;
 
     private final HookConfig hookConfig;
 
@@ -30,6 +32,33 @@ public class HooksManager {
         MessageUtils.toConsole(hooks.size() + " Hooks loaded",false);
     }
 
+    /**
+     * Retrieves the singleton instance of the HooksManager.
+     * Overrides the interface's default method to return the actual instance.
+     *
+     * @return The HooksManager instance.
+     * @throws IllegalStateException If the instance is not initialized.
+     */
+    public static HooksManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("HooksManager instance not initialized. Ensure RequisiteRTP plugin is enabled.");
+        }
+        return instance;
+    }
+
+    @Override
+    public Hook registerHook(Hook.HookData hookData, Class<? extends Hook> hookClass) {
+        try {
+            Constructor<? extends Hook> constructor = hookClass.getConstructor(Hook.HookData.class);
+            Hook hookInstance = constructor.newInstance(hookData);
+            hooks.add(hookInstance);
+            return hookInstance;
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            MessageUtils.error("An error happened when loading hook " + hookData.getName() + " " + e.getMessage());
+            return null;
+        }
+    }
+
     @SuppressWarnings("UnusedReturnValue")
     public Hook registerHook(String name,boolean isEnabled,String bypassPermission,Class<? extends Hook> hookClass) {
         isEnabled = hookConfig.isEnabled(name,isEnabled);
@@ -37,23 +66,12 @@ public class HooksManager {
         if (!isEnabled) {
             return null;
         }
-
         Hook.HookData hookData = new Hook.HookData(name, true,bypassPermission);
-
-        try {
-            Constructor<? extends Hook> constructor = hookClass.getConstructor(Hook.HookData.class);
-            Hook flagInstance = constructor.newInstance(hookData);
-            hooks.add(flagInstance);
-            return flagInstance;
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            MessageUtils.error("An error happened when loading hook " + name + " " + e.getMessage());
-            return null;
-        }
+        return registerHook(hookData,hookClass);
     }
 
     public void initialize() {
-        registerHook("GriefPrevention",true,"requisitertp.bypass.griefprevention", GriefPreventionHook.class);
-
+        registerHook("GriefPrevention",true,"bypass.griefprevention", GriefPreventionHook.class);
     }
 
 

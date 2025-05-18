@@ -12,12 +12,28 @@ public class RequisiteWorld {
 
     private final String worldName;
     private final UUID worldUUID;
+    private boolean isEnabled;
+
+    private int worldMinimumX;
+    private int worldMaximumX;
+    private int worldMinimumZ;
+    private int worldMaximumZ;
 
     private final ReferenceWorld referenceWorld;
 
     public RequisiteWorld(String worldName, UUID worldUUID) {
         this.worldName = worldName;
         this.worldUUID = worldUUID;
+        this.referenceWorld = new ReferenceWorld(this);
+    }
+    public RequisiteWorld(String worldName, UUID worldUUID, boolean isEnabled, int worldMinimumX, int worldMaximumX, int worldMinimumZ, int worldMaximumZ) {
+        this.worldName = worldName;
+        this.worldUUID = worldUUID;
+        this.isEnabled = isEnabled;
+        this.worldMinimumX = worldMinimumX;
+        this.worldMaximumX = worldMaximumX;
+        this.worldMinimumZ = worldMinimumZ;
+        this.worldMaximumZ = worldMaximumZ;
         this.referenceWorld = new ReferenceWorld(this);
     }
 

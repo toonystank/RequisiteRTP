@@ -1,6 +1,6 @@
 package com.toonystank.requisitertp.effect.implementations;
 
-import com.toonystank.requisitertp.effect.BaseEffect;
+import com.toonystank.effect.BaseEffect;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
@@ -44,5 +44,9 @@ public class SpiralEffect extends BaseEffect {
     @Override
     public boolean hasToStop(Player player, boolean FirstCall) {
         return false;
+    }
+
+    @Override
+    public void onTeleportComplete(Player player) {
     }
 }

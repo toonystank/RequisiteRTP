@@ -1,6 +1,7 @@
 package com.toonystank.requisitertp.rtp;
 
 import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.utils.Handlers;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
@@ -25,16 +26,20 @@ public class RTPQueue {
         processQueue();
     }
 
-    public void addPlayer(Player player) {
+    public boolean addPlayer(Player player) {
         UUID playerUUID = player.getUniqueId();
 
-        if (forTeleportQueue.contains(playerUUID)) return;
+        if (forTeleportQueue.contains(playerUUID)) return false;
 
-        forTeleportQueue.add(playerUUID);
+        return forTeleportQueue.add(playerUUID);
+    }
+
+    public boolean isInQueue(Player player) {
+        return forTeleportQueue.contains(player.getUniqueId());
     }
 
     private void processQueue() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(RequisiteRTP.getInstance(), () -> {
+        Handlers.runTaskTimerAsync(20,() -> {
             if (forTeleportQueue.isEmpty()) return;
 
             UUID playerUUID = forTeleportQueue.poll();
@@ -55,26 +60,26 @@ public class RTPQueue {
             Location randomLocation = rtpManager.findSafeLocation(player, world);
             if (randomLocation == null) return;
 
+            Handlers.runTask(() ->randomLocation.getChunk().load());
+
             rtpManager.getEffectManager().runSuitableEffect(player).whenComplete((result, ignored) -> {
                 onTeleportQueue.poll();
                 if (result) {
                     // removes the player from teleport queue as the player is already teleported. this is here to prevent duplicated teleports.
 
-                    Bukkit.getScheduler().runTask(RequisiteRTP.getInstance(), () -> {
-                        randomLocation.getChunk().load();
-                        PaperLib.teleportAsync(player, randomLocation).whenComplete((successfullyTeleported,throwable) -> {
-                            if (successfullyTeleported) {
-                                MessageUtils.sendTitleMessage(player
-                                        ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleported()
-                                        ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleportedSubTitle());
-                            }
-                        });
-                    });
+                    Handlers.runTask(() -> PaperLib.teleportAsync(player, randomLocation).whenComplete((successfullyTeleported, throwable) -> {
+                        if (successfullyTeleported) {
+                            rtpManager.getEffectManager().notifyTeleportComplete(player);
+                            MessageUtils.sendTitleMessage(player
+                                    ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleported()
+                                    ,RequisiteRTP.getInstance().getMainConfig().getTeleportSuccessfullyTeleportedSubTitle());
+                        }
+                    }));
                 }else {
                     MessageUtils.sendMessage(player,"&cAn error occurred while teleporting you to a random location. Please try again.");
                 }
             });
 
-        }, 0L, 20L);
+        });
     }
 }

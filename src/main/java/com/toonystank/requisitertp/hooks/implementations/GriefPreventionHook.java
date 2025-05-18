@@ -1,6 +1,6 @@
 package com.toonystank.requisitertp.hooks.implementations;
 
-import com.toonystank.requisitertp.hooks.Hook;
+import com.toonystank.hooks.Hook;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;

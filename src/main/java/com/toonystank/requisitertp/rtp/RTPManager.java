@@ -1,10 +1,13 @@
 package com.toonystank.requisitertp.rtp;
 
+import com.toonystank.hooks.Hook;
 import com.toonystank.requisitertp.RequisiteRTP;
+import com.toonystank.requisitertp.data.WorldManager;
 import com.toonystank.requisitertp.effect.EffectManager;
+import com.toonystank.requisitertp.effect.implementations.CharacterSwitchCameraEffect;
 import com.toonystank.requisitertp.effect.implementations.SpiralEffect;
 import com.toonystank.requisitertp.effect.implementations.TitleEffect;
-import com.toonystank.requisitertp.hooks.Hook;
+import com.toonystank.requisitertp.hooks.HooksManager;
 import com.toonystank.requisitertp.utils.Handlers;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import lombok.Getter;
@@ -15,23 +18,23 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 @Getter
 public class RTPManager {
 
+    private final WorldManager worldManager;
+
     private final Random random;
     private final RTPQueue rtpQueue;
     private final EffectManager effectManager;
-    private final List<Hook> protectionHooks;
 
-    public RTPManager() {
+    public RTPManager(WorldManager worldManager) {
+        this.worldManager = worldManager;
+
         this.random = new Random();
         this.rtpQueue = new RTPQueue(this);
-        this.protectionHooks = new ArrayList<>();
         try {
             this.effectManager = new EffectManager();
             initializeEffects();
@@ -45,20 +48,24 @@ public class RTPManager {
         try {
             effectManager.registerEffect("Spiral",true, Collections.singletonList("Spawns particles around player"),Collections.emptyList(), "effect.spiral", SpiralEffect.class);
             effectManager.registerEffect("Title",true, Collections.singletonList("Shows a title to the player"),Collections.emptyList(), "effect.title", TitleEffect.class);
+            effectManager.registerEffect("CharacterSwitchCameraEffect",true,Collections.singletonList("Gta Character switch"),Collections.emptyList(),"effect.cameraeffect", CharacterSwitchCameraEffect.class);
         } catch (IOException e) {
             MessageUtils.error("An error happened when loading effect " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public void addToQueue(Player player) {
+    public boolean addToQueue(Player player) {
         MessageUtils.toConsole("added player " + player + " to teleport queue",true);
-        rtpQueue.addPlayer(player);
+
+        if (rtpQueue.isInQueue(player)) {
+            MessageUtils.sendMessage(player, "&cYou are already in the teleport queue!");
+            return false;
+        }
+
+        return rtpQueue.addPlayer(player);
     }
 
-    public void registerProtectionHook(Hook hook) {
-        protectionHooks.add(hook);
-    }
 
     public Location findSafeLocation(Player player, World world) {
         MessageUtils.toConsole("Finding safe location in " + world.getName(), true);
@@ -164,7 +171,7 @@ public class RTPManager {
 
 
     private boolean isLocationAllowed(Player player,Location location) {
-        for (Hook hook : protectionHooks) {
+        for (Hook hook : HooksManager.getHooks()) {
             if (!hook.getHookData().isEnabled()) continue;
 
             if (Handlers.hasPermission(player, hook.getHookData().getBypassPermission())) return true;

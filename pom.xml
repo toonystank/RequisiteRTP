@@ -6,12 +6,13 @@
 
   <groupId>com.toonystank</groupId>
   <artifactId>RequisiteRTP</artifactId>
-  <version>1.0</version>
+  <version>${revision}</version>
   <packaging>jar</packaging>
 
   <name>RequisiteRTP</name>
 
     <properties>
+        <revision>1.0</revision> <!-- This can be overridden by -Drevision=4.6.3-PRE_RELEASE343 -->
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -98,14 +99,42 @@
           <id>minebench-repo</id>
           <url>https://repo.minebench.de/</url>
       </repository>
+      <!-- WorldGuard and WorldEdit -->
+      <repository>
+          <id>sk89q-repo</id>
+          <url>https://maven.enginehub.org/repo/</url>
+      </repository>
+      <!-- Jitpack for general -->
+      <repository>
+          <id>jitpack.io</id>
+          <url>https://jitpack.io</url>
+      </repository>
+
+      <!-- geysermc -->
+      <repository>
+          <id>opencollab-snapshot</id>
+          <url>https://repo.opencollab.dev/main/</url>
+      </repository>
+
+        <!-- Protocollib -->
+      <repository>
+          <id>dmulloy2-repo</id>
+          <url>https://repo.dmulloy2.net/repository/public/</url>
+      </repository>
   </repositories>
 
   <dependencies>
+      <!-- RequisiteRTP API -->
+      <dependency>
+          <groupId>com.github.toonystank</groupId>
+          <artifactId>RequisiteRTP-API</artifactId>
+          <version>-SNAPSHOT</version>
+      </dependency>
       <!--Spigot API-->
       <dependency>
           <groupId>org.spigotmc</groupId>
           <artifactId>spigot-api</artifactId>
-          <version>1.21.4-R0.1-SNAPSHOT</version>
+          <version>1.14.4-R0.1-SNAPSHOT</version>
           <scope>provided</scope>
       </dependency>
       <!-- Spigot nms -->
@@ -178,6 +207,37 @@
           <artifactId>adventure-platform-bukkit</artifactId>
           <version>4.3.4</version>
       </dependency>
+      <!-- GeyserMC for bedrock gui support -->
+      <dependency>
+          <groupId>org.geysermc.geyser</groupId>
+          <artifactId>api</artifactId>
+          <version>2.6.2-SNAPSHOT</version>
+          <scope>provided</scope>
+      </dependency>
+
+      <!-- ProtocolLib -->
+      <dependency>
+          <groupId>com.comphenix.protocol</groupId>
+          <artifactId>ProtocolLib</artifactId>
+          <version>5.3.0</version>
+          <scope>provided</scope>
+      </dependency>
+
+        <!-- Hooks here -->
+        <!-- GriefPrevention -->
+      <dependency>
+          <groupId>com.github.TechFortress</groupId>
+          <artifactId>GriefPrevention</artifactId>
+          <version>16.18.4</version>
+          <scope>provided</scope>
+      </dependency>
+        <!-- WorldGuard -->
+      <dependency>
+          <groupId>com.sk89q.worldguard</groupId>
+          <artifactId>worldguard-bukkit</artifactId>
+          <version>7.0.13</version>
+          <scope>provided</scope>
+      </dependency>
         <!-- Lombok -->
       <dependency>
           <groupId>org.projectlombok</groupId>
@@ -185,6 +245,7 @@
           <version>1.18.32</version>
           <scope>provided</scope>
       </dependency>
+        <!-- annotations -->
       <dependency>
           <groupId>org.jetbrains</groupId>
           <artifactId>annotations</artifactId>

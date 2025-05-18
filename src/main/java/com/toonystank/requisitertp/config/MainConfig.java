@@ -41,7 +41,7 @@ public class MainConfig extends FileConfig {
         worldMinimumZ = getInt("world.minimumZ",100);
         worldMaximumZ = getInt("world.maximumZ",10000);
 
-        getConfig().setComments("teleport.waitingTime", Collections.singletonList("The time in seconds the player has to wait before teleporting"));
+        //getConfig().setComments("teleport.waitingTime", Collections.singletonList("The time in seconds the player has to wait before teleporting"));
         teleportWaitingTime = getInt("teleport.waitingTime",5);
 
         teleportYouAlreadyOnTeleportQueue = getString("teleport.youAlreadyOnTeleportQueue", "&7You Already on teleport queue.");

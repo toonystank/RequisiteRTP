@@ -1,7 +1,7 @@
 package com.toonystank.requisitertp.effect.implementations;
 
+import com.toonystank.effect.BaseTimedEffect;
 import com.toonystank.requisitertp.RequisiteRTP;
-import com.toonystank.requisitertp.effect.BaseTimedEffect;
 import com.toonystank.requisitertp.effect.EffectManager;
 import com.toonystank.requisitertp.utils.MessageUtils;
 import org.bukkit.Location;
@@ -23,7 +23,7 @@ public class TitleEffect extends BaseTimedEffect {
 
     public TitleEffect(Effect effect) {
         super(effect, Type.SECONDS);
-        EffectManager manager = EffectManager.getEffectManager();
+        EffectManager manager = EffectManager.getInstance();
 
         this.teleportDelayTitle = getConfigString(manager, "Title.message.teleport_delay_title", "&a&l[Teleportation]");
         this.teleportDelaySubtitle = getConfigString(manager, "Title.message.teleport_delay_subTitle", "&b&l>> &cTeleporting in &f{time}&c seconds &b&l<<");
@@ -65,6 +65,10 @@ public class TitleEffect extends BaseTimedEffect {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onTeleportComplete(Player player) {
     }
 
     private boolean hasPlayerMoved(Player player) {

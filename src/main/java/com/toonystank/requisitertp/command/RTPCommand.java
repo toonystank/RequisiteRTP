@@ -37,8 +37,9 @@ public class RTPCommand extends BaseCommand{
 
         Player player = RequisiteRTP.getInstance().getServer().getPlayer(args[0]);
         if (player == null) return;
-        plugin.getRtpManager().addToQueue(player);
-        MessageUtils.sendMessage(sender, "&aYou have been added to the queue to teleport to a random location!");
+        if (plugin.getRtpManager().addToQueue(player)) {
+            MessageUtils.sendMessage(sender, "&aYou have been added to the queue to teleport to a random location!");
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.toonystank.requisitertp;
 
 import com.toonystank.requisitertp.command.RTPCommand;
+import com.toonystank.requisitertp.data.WorldManager;
 import com.toonystank.requisitertp.hooks.HooksManager;
 import com.toonystank.requisitertp.rtp.RTPManager;
 import com.toonystank.requisitertp.config.MainConfig;
@@ -24,6 +25,8 @@ public final class RequisiteRTP extends JavaPlugin {
     private BukkitAudiences adventure;
     private MainConfig mainConfig;
     private HooksManager hooksManager;
+
+    private WorldManager worldManager;
     private RTPCommand rtpCommand;
     private RTPManager rtpManager;
 
@@ -42,8 +45,14 @@ public final class RequisiteRTP extends JavaPlugin {
             e.printStackTrace();
         }
         this.hooksManager = new HooksManager();
+
+        try {
+            this.worldManager = new WorldManager();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.rtpCommand = new RTPCommand(this);
-        this.rtpManager = new RTPManager();
+        this.rtpManager = new RTPManager(worldManager);
 
     }
 

@@ -1,6 +1,6 @@
 package com.toonystank.requisitertp.effect.implementations;
 
-import com.toonystank.requisitertp.effect.BaseTimedEffect;
+import com.toonystank.effect.BaseTimedEffect;
 import org.bukkit.entity.Player;
 
 public class SoundEffect extends BaseTimedEffect {
@@ -19,5 +19,9 @@ public class SoundEffect extends BaseTimedEffect {
     @Override
     public boolean hasToStop(Player player, boolean firstCall) {
         return false;
+    }
+
+    @Override
+    public void onTeleportComplete(Player player) {
     }
 }
