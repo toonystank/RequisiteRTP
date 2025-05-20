@@ -12,6 +12,16 @@ public class PotionEffect extends BaseTimedEffect {
     }
 
     @Override
+    public void load() {
+
+    }
+
+    @Override
+    public void clearData() {
+
+    }
+
+    @Override
     public void applyTimedEffect(Player player, int tickCount) {
         int duration = 40; // 2 seconds (40 ticks)
         int amplifier = 0; // Blindness I

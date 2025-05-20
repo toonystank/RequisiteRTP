@@ -13,6 +13,16 @@ public class SpiralEffect extends BaseEffect {
     }
 
     @Override
+    public void load() {
+
+    }
+
+    @Override
+    public void clearData() {
+
+    }
+
+    @Override
     public void applyEffect(Player player, int tickCount) {
         Location loc = player.getLocation();
         double radius = 1.5 + (tickCount * 0.01);

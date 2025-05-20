@@ -14,31 +14,40 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TitleEffect extends BaseTimedEffect {
 
-    private final String teleportDelayTitle;
-    private final String teleportDelaySubtitle;
-    private final String teleportCancelTitle;
-    private final String teleportCancelSubtitle;
+    private String teleportDelayTitle;
+    private String teleportDelaySubtitle;
+    private String teleportCancelTitle;
+    private String teleportCancelSubtitle;
 
-    private final Map<UUID, Location> playerLocations = new ConcurrentHashMap<>();
+    private Map<UUID, Location> playerLocations ;
 
     public TitleEffect(Effect effect) {
         super(effect, Type.SECONDS);
-        EffectManager manager = EffectManager.getInstance();
 
-        this.teleportDelayTitle = getConfigString(manager, "Title.message.teleport_delay_title", "&a&l[Teleportation]");
-        this.teleportDelaySubtitle = getConfigString(manager, "Title.message.teleport_delay_subTitle", "&b&l>> &cTeleporting in &f{time}&c seconds &b&l<<");
-        this.teleportCancelTitle = getConfigString(manager, "Title.message.teleport_cancel_title", "&c&l[Teleportation Canceled]");
-        this.teleportCancelSubtitle = getConfigString(manager, "Title.message.teleport_cancel_subTitle", "&7You moved! Try again to teleport.");
     }
 
-    private static String getConfigString(EffectManager manager, String path, String defaultValue) {
+    @Override
+    public void load() {
+        playerLocations = new ConcurrentHashMap<>();
         try {
-            return manager.getString(path, defaultValue);
+            this.teleportDelayTitle = EffectManager.getStringValue("Title.message.teleport_delay_title", "&a&l[Teleportation]");
+            this.teleportDelaySubtitle =  EffectManager.getStringValue("Title.message.teleport_delay_subTitle", "&b&l>> &cTeleporting in &f{time}&c seconds &b&l<<");
+            this.teleportCancelTitle =  EffectManager.getStringValue("Title.message.teleport_cancel_title", "&c&l[Teleportation Canceled]");
+            this.teleportCancelSubtitle =  EffectManager.getStringValue("Title.message.teleport_cancel_subTitle", "&7You moved! Try again to teleport.");
         } catch (IOException e) {
-            MessageUtils.error("Error loading TitleEffect config: " + e.getMessage());
-            return null;
+            throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void clearData() {
+        playerLocations.clear();
+        teleportDelayTitle = null;
+        teleportDelaySubtitle = null;
+        teleportCancelTitle = null;
+        teleportCancelSubtitle = null;
+    }
+
 
     @Override
     public void applyTimedEffect(Player player, int tickCount) {

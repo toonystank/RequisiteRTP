@@ -32,6 +32,16 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
     }
 
     @Override
+    public void load() {
+
+    }
+
+    @Override
+    public void clearData() {
+
+    }
+
+    @Override
     public void applyTimedEffect(Player player, int tickCount) {
         UUID playerUUID = player.getUniqueId();
         Location currentLoc = player.getLocation();
