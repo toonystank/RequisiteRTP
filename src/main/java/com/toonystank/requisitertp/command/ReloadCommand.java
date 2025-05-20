@@ -13,7 +13,7 @@ public class ReloadCommand implements SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        RequisiteRTP.getInstance().reload();
+        RequisiteRTP.getInstance().reload(sender);
     }
 
     @Override

@@ -11,6 +11,10 @@ import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -29,7 +33,6 @@ public final class RequisiteRTP extends JavaPlugin {
     private WorldManager worldManager;
     private RTPCommand rtpCommand;
     private RTPManager rtpManager;
-
 
 
     @Override
@@ -62,16 +65,20 @@ public final class RequisiteRTP extends JavaPlugin {
     }
 
 
-    public void reload() {
-        MessageUtils.toConsole("reloading plugin....",false);
+    public void reload(CommandSender player) {
+        MessageUtils.sendMessage(player,"reloading plugin....");
         long time = System.currentTimeMillis();
         try {
             this.mainConfig.reload();
+            this.rtpManager.reload();
+            this.hooksManager.reload();
+            this.worldManager.reload();
+
         } catch (IOException e) {
            MessageUtils.error("An error happend while reloading the plugin " + e.getMessage());
             e.printStackTrace();
         }
         long currentTime = time - System.currentTimeMillis();
-        MessageUtils.toConsole("Successfully reloaded the plugin in " + currentTime + " ms",false);
+        MessageUtils.sendMessage(player,"Successfully reloaded the plugin in " + currentTime + " ms");
     }
 }

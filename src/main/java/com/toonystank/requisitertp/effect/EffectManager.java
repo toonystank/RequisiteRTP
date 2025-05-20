@@ -36,6 +36,38 @@ public class EffectManager extends FileConfig implements com.toonystank.effect.E
         return instance;
     }
 
+    public static String getStringValue(String path, String defaultValue) throws IOException {
+        return instance.getString(path,defaultValue);
+    }
+    public static boolean getBooleanValue(String path, boolean defaultValue) throws IOException {
+        return instance.getBoolean(path,defaultValue);
+    }
+    public static List<String> getStringListValue(String path, List<String> defaultValue) throws IOException {
+        return instance.getStringList(path,defaultValue);
+    }
+    public static void getIntegerValue(String path, int defaultValue) throws IOException {
+        instance.getInt(path,defaultValue);
+    }
+
+    public static <T extends BaseEffect> T getEffectInstance(BaseEffect.Effect effect) {
+        BaseEffect.Effect baseEffect = effects.get(effect.getName());
+        if (baseEffect == null) {
+            throw new IllegalStateException("Effect not found: " + effect.getName());
+        }
+        BaseEffect baseEffectClass = effectInstances.get(effect);
+        if (baseEffectClass == null) {
+            throw new IllegalStateException("Effect instance not found for effect: " + effect.getName());
+        }
+        if (baseEffect.getEffectClass().isInstance(baseEffectClass)) {
+            @SuppressWarnings("unchecked")
+            T t = (T) baseEffectClass;
+            return t;
+        } else {
+            throw new IllegalStateException("Effect class mismatch for effect: " + effect.getName());
+        }
+    }
+
+
     public BaseEffect.Effect registerEffect(String name,
                                             boolean enabled,
                                             List<String> description,
@@ -184,5 +216,19 @@ public class EffectManager extends FileConfig implements com.toonystank.effect.E
         }
         activePlayerEffects.remove(playerUUID);
         MessageUtils.debug("Notified teleport completion for player: " + player.getName());
+    }
+
+    public void reload()  {
+        try {
+            super.reload();
+            effectInstances.forEach((effect, baseEffect) -> {
+                baseEffect.clearData();
+                baseEffect.load();
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 }

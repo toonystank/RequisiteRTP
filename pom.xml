@@ -4,12 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.toonystank</groupId>
-  <artifactId>RequisiteRTP</artifactId>
-  <version>${revision}</version>
-  <packaging>jar</packaging>
+    <artifactId>RequisiteRTP</artifactId>
+    <version>${revision}</version>
+    <packaging>jar</packaging>
+    <name>RequisiteRTP</name>
 
-  <name>RequisiteRTP</name>
+    <parent>
+        <groupId>com.toonystank</groupId>
+        <artifactId>RequisiteRTP-Parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
     <properties>
         <revision>1.0</revision> <!-- This can be overridden by -Drevision=4.6.3-PRE_RELEASE343 -->
@@ -126,9 +130,9 @@
   <dependencies>
       <!-- RequisiteRTP API -->
       <dependency>
-          <groupId>com.github.toonystank</groupId>
+          <groupId>com.toonystank</groupId>
           <artifactId>RequisiteRTP-API</artifactId>
-          <version>-SNAPSHOT</version>
+          <version>0.9</version>
       </dependency>
       <!--Spigot API-->
       <dependency>

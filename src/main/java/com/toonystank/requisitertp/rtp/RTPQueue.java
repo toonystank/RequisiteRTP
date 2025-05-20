@@ -82,4 +82,9 @@ public class RTPQueue {
 
         });
     }
+
+    public void reload() {
+        forTeleportQueue.clear();
+        onTeleportQueue.clear();
+    }
 }

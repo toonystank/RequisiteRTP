@@ -43,12 +43,28 @@ public class RTPManager {
             throw new RuntimeException(e);
         }
     }
+
     public void initializeEffects() {
-        MessageUtils.toConsole("initializing effects..",false);
+        MessageUtils.toConsole("initializing effects..", false);
         try {
-            effectManager.registerEffect("Spiral",true, Collections.singletonList("Spawns particles around player"),Collections.emptyList(), "effect.spiral", SpiralEffect.class);
-            effectManager.registerEffect("Title",true, Collections.singletonList("Shows a title to the player"),Collections.emptyList(), "effect.title", TitleEffect.class);
-            effectManager.registerEffect("CharacterSwitchCameraEffect",true,Collections.singletonList("Gta Character switch"),Collections.emptyList(),"effect.cameraeffect", CharacterSwitchCameraEffect.class);
+            effectManager.registerEffect("Spiral"
+                    , true
+                    , Collections.singletonList("Spawns particles around player")
+                    , Collections.emptyList()
+                    , "effect.spiral"
+                    , SpiralEffect.class);
+            effectManager.registerEffect("Title"
+                    , true
+                    , Collections.singletonList("Shows a title to the player")
+                    , Collections.emptyList()
+                    , "effect.title"
+                    , TitleEffect.class);
+            effectManager.registerEffect("CharacterSwitchCameraEffect"
+                    , true
+                    , Collections.singletonList("Gta Character switch")
+                    , Collections.emptyList()
+                    , "effect.cameraeffect"
+                    , CharacterSwitchCameraEffect.class);
         } catch (IOException e) {
             MessageUtils.error("An error happened when loading effect " + e.getMessage());
             e.printStackTrace();
@@ -56,8 +72,12 @@ public class RTPManager {
     }
 
     public boolean addToQueue(Player player) {
-        MessageUtils.toConsole("added player " + player + " to teleport queue",true);
+        MessageUtils.toConsole("added player " + player + " to teleport queue", true);
 
+        if (!worldManager.isWorldEnabled(player)) {
+            MessageUtils.sendMessage(player, "&cYou cannot teleport in this world!");
+            return false;
+        }
         if (rtpQueue.isInQueue(player)) {
             MessageUtils.sendMessage(player, "&cYou are already in the teleport queue!");
             return false;
@@ -110,7 +130,6 @@ public class RTPManager {
             int x = centerX + (int) (Math.cos(angle) * radius);
             int z = centerZ + (int) (Math.sin(angle) * radius);
 
-            // Ensure it's within allowed boundaries
             if (x < finalMinX || x > finalMaxX || z < finalMinZ || z > finalMaxZ) {
                 continue;
             }
@@ -141,18 +160,16 @@ public class RTPManager {
         Material blockType = block.getType();
         Material aboveType = above.getType();
 
-        // Ensure the block below is solid and not dangerous
         if (!belowType.isSolid() || belowType.name().contains("LEAVES") || isDangerousBlock(belowType)) {
             return false;
         }
 
-        // Ensure the block and the one above it are air or passable
         if (isPassable(blockType) || isPassable(aboveType)) {
             return false;
         }
-        // Ensure it's not inside a cave or too dark
         return !isDarkCave(location);
     }
+
     private boolean isDangerousBlock(Material type) {
         return type == Material.LAVA || type == Material.FIRE || type == Material.CACTUS
                 || type == Material.MAGMA_BLOCK || type == Material.CAMPFIRE;
@@ -170,13 +187,17 @@ public class RTPManager {
     }
 
 
-    private boolean isLocationAllowed(Player player,Location location) {
+    private boolean isLocationAllowed(Player player, Location location) {
         for (Hook hook : HooksManager.getHooks()) {
             if (!hook.getHookData().isEnabled()) continue;
 
             if (Handlers.hasPermission(player, hook.getHookData().getBypassPermission())) return true;
-            if (!hook.isAllowed(player,location)) return false;
+            if (!hook.isAllowed(player, location)) return false;
         }
         return true;
+    }
+    public void reload() {
+        rtpQueue.reload();
+        effectManager.reload();
     }
 }
