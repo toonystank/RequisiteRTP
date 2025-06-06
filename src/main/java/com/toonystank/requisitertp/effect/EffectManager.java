@@ -109,6 +109,7 @@ public class EffectManager extends FileConfig implements com.toonystank.effect.E
         try {
             Constructor<? extends BaseEffect> constructor = effect.getEffectClass().getConstructor(BaseEffect.Effect.class);
             BaseEffect baseEffect = constructor.newInstance(effect);
+            baseEffect.load();
             MessageUtils.toConsole("effect class " + baseEffect.getClass().getName() + " is loaded", true);
             effectInstances.put(effect, baseEffect);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |

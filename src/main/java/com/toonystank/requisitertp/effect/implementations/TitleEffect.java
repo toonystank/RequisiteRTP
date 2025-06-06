@@ -19,7 +19,7 @@ public class TitleEffect extends BaseTimedEffect {
     private String teleportCancelTitle;
     private String teleportCancelSubtitle;
 
-    private Map<UUID, Location> playerLocations ;
+    private final Map<UUID, Location> playerLocations = new ConcurrentHashMap<>();
 
     public TitleEffect(Effect effect) {
         super(effect, Type.SECONDS);
@@ -28,7 +28,6 @@ public class TitleEffect extends BaseTimedEffect {
 
     @Override
     public void load() {
-        playerLocations = new ConcurrentHashMap<>();
         try {
             this.teleportDelayTitle = EffectManager.getStringValue("Title.message.teleport_delay_title", "&a&l[Teleportation]");
             this.teleportDelaySubtitle =  EffectManager.getStringValue("Title.message.teleport_delay_subTitle", "&b&l>> &cTeleporting in &f{time}&c seconds &b&l<<");

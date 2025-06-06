@@ -1,14 +1,9 @@
 package com.toonystank.requisitertp.effect.implementations;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
 import com.toonystank.effect.BaseTimedEffect;
 import com.toonystank.requisitertp.RequisiteRTP;
 import com.toonystank.requisitertp.utils.MessageUtils;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -33,12 +28,12 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
 
     @Override
     public void load() {
-
+        // No-op
     }
 
     @Override
     public void clearData() {
-
+        // No-op
     }
 
     @Override
@@ -64,8 +59,7 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
         }
 
         double progress = (double) (tickCount - 2) / (totalDurationTicks - 2);
-
-        Location newCameraLoc = calculateCameraPosition(player, currentLoc, tickCount, progress);
+        Location newCameraLoc = calculateCameraPosition(currentLoc, tickCount, progress);
         camera.teleport(newCameraLoc);
 
         if (progress >= 0.2) {
@@ -90,16 +84,18 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
         });
 
         cameraAnchors.put(player.getUniqueId(), cameraAnchor);
+
         new BukkitRunnable() {
             @Override
             public void run() {
-                sendCameraPacket(player, cameraAnchor.getEntityId());
-                MessageUtils.debug("Camera anchor spawned and packet sent at: " + cameraLoc + " for player: " + player.getName());
+                player.setGameMode(GameMode.SPECTATOR);
+                player.setSpectatorTarget(cameraAnchor);
+                MessageUtils.debug("Player is now spectating camera anchor at: " + cameraLoc);
             }
         }.runTaskLater(RequisiteRTP.getInstance(), 1L);
     }
 
-    private Location calculateCameraPosition(Player player, Location target, int tickCount, double progress) {
+    private Location calculateCameraPosition(Location target, int tickCount, double progress) {
         Location cameraLoc = target.clone();
         double maxHeight = 60.0;
         double shakeAmplitude = 0.5;
@@ -121,7 +117,49 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
     @Override
     public void onTeleportComplete(Player player) {
         UUID playerUUID = player.getUniqueId();
-        resetCamera(player, playerUUID);
+        ArmorStand camera = cameraAnchors.get(playerUUID);
+
+        if (camera == null) {
+            resetCamera(player, playerUUID); // Fallback
+            return;
+        }
+
+        Location targetLocation = player.getLocation().clone().add(0, 2, 0);
+        Location startLocation = camera.getLocation();
+
+        new BukkitRunnable() {
+            double t = 0;
+            final int steps = 20;
+            final Location start = startLocation.clone();
+            final Location end = targetLocation.clone();
+
+            @Override
+            public void run() {
+                if (t >= 1.0) {
+                    resetCamera(player, playerUUID);
+                    cancel();
+                    return;
+                }
+
+                double progress = t;
+                double newY = start.getY() + (end.getY() - start.getY()) * progress;
+                Location intermediate = new Location(
+                        start.getWorld(),
+                        start.getX(),
+                        newY,
+                        start.getZ(),
+                        0,
+                        90
+                );
+
+                ArmorStand camera = cameraAnchors.get(playerUUID);
+                if (camera != null) {
+                    camera.teleport(intermediate);
+                }
+
+                t += 1.0 / steps;
+            }
+        }.runTaskTimer(RequisiteRTP.getInstance(), 0L, 1L);
     }
 
     private void resetCamera(Player player, UUID playerUUID) {
@@ -133,33 +171,14 @@ public class CharacterSwitchCameraEffect extends BaseTimedEffect {
             MessageUtils.debug("Camera anchor removed for player: " + player.getName());
         }
 
-        PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(
-                com.comphenix.protocol.PacketType.Play.Server.CAMERA);
-        packet.getIntegers().write(0, player.getEntityId());
+        player.setGameMode(GameMode.SURVIVAL);
+        player.teleport(player.getLocation());
 
-        try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-            MessageUtils.debug("Camera reset to player: " + player.getName());
-        } catch (Exception e) {
-            MessageUtils.error("Failed to reset camera: " + e.getMessage());
-        }
+        MessageUtils.debug("Camera reset to player: " + player.getName());
 
         Location playerLoc = player.getLocation();
         playerLoc.getWorld().spawnParticle(Particle.PORTAL, playerLoc, 30, 0.5, 0.5, 0.5, 0.1);
         player.playSound(playerLoc, Sound.ENTITY_SHULKER_TELEPORT, 0.8f, 1.0f);
-    }
-
-    private void sendCameraPacket(Player player, int entityId) {
-        PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(
-                com.comphenix.protocol.PacketType.Play.Server.CAMERA);
-        packet.getIntegers().write(0, entityId);
-
-        try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-            MessageUtils.debug("Camera packet sent to entity ID: " + entityId + " for player: " + player.getName());
-        } catch (Exception e) {
-            MessageUtils.error("Failed to send camera packet: " + e.getMessage());
-        }
     }
 
     @Override
